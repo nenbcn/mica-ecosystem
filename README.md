@@ -189,10 +189,22 @@ O actualiza `default_envs` en `platformio.ini` y compila con `-e <entorno>`.
 
 ## 📚 Documentación
 
-- `docs/architecture-monorepo.md` - Arquitectura completa del ecosistema
-- `docs/layered-architecture.md` - Explicación del patrón de 3 capas
-- `docs/shared-modules.md` - Referencia de módulos compartidos
-- `docs/monorepo-guide.md` - Guía para desarrolladores
+### Documentación Técnica
+
+- **[docs/architecture.md](./docs/architecture.md)** - Arquitectura del sistema recirculator (3 capas, FreeRTOS, MQTT)
+- **[docs/hardware.md](./docs/hardware.md)** - Especificaciones de hardware y pinout
+- **[docs/ISSUES.md](./docs/ISSUES.md)** - Tareas y planificación del proyecto
+- **[docs/REFACTORING-PLAN.md](./docs/REFACTORING-PLAN.md)** - Plan de migración al monorepo
+- **[docs/CHANGELOG-2025-11-28.md](./docs/CHANGELOG-2025-11-28.md)** - Historial de cambios
+
+### Guías de Desarrollo
+
+- **[.github/copilot-instructions.md](./.github/copilot-instructions.md)** - Estándares de código, workflow Git, testing
+  - Naming conventions (camelCase, snake_case, UPPER_CASE)
+  - Arquitectura de 3 capas (Application → Services → Drivers)
+  - Git commit format y branching strategy
+  - Testing checklist
+  - Principios de arquitectura por gaesca04
 
 ## 🏆 Reconocimiento
 
