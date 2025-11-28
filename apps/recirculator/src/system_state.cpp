@@ -165,7 +165,6 @@ bool initializeSystemState() {
 void setSystemState(SystemState state) {
     if (xSemaphoreTake(g_stateMutex, portMAX_DELAY)) {
         g_systemState = state;
-        Log::info("System state updated to: %d", state);
         xSemaphoreGive(g_stateMutex);
     }
 }
