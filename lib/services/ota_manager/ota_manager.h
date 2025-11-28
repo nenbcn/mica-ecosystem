@@ -12,7 +12,12 @@
 void initializeOTAManager();
 
 /**
- * @brief
+ * @brief FreeRTOS task for OTA update process.
+ * @param pvParameters Task parameters (not used)
+ * 
+ * This task triggers the OTA update and handles the result.
+ * On success, device reboots automatically.
+ * On failure or no update available, returns to CONNECTED_MQTT state.
  */
 void otaTask(void *pvParameters);
 

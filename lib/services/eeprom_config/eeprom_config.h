@@ -17,17 +17,17 @@
 #define FLAG_ADDR 128           // Address for validation flag
 #define FLAG_VALID 0xA5         // Validation flag value
 #define MAX_CRED_LENGTH 64      // Maximum length for SSID and Password
-#define TEMP_ADDR 200            // Nova adreça per guardar la temperatura
-#define FLAG_TEMP_ADDR 204       // Adreça per la flag de temperatura
-#define FLAG_TEMP_VALID 0xB5     // Flag de validació per la temperatura
-#define MAX_TIME_ADDR 208        // Adreça per guardar el temps màxim (en segons)
-#define FLAG_MAX_TIME_ADDR 212   // Adreça per la flag de temps màxim
-#define FLAG_MAX_TIME_VALID 0xC5 // Flag de validació per el temps màxim
+#define TEMP_ADDR 200            // Address for storing max temperature
+#define FLAG_TEMP_ADDR 204       // Address for temperature validation flag
+#define FLAG_TEMP_VALID 0xB5     // Validation flag for temperature
+#define MAX_TIME_ADDR 208        // Address for storing max time (in seconds)
+#define FLAG_MAX_TIME_ADDR 212   // Address for max time validation flag
+#define FLAG_MAX_TIME_VALID 0xC5 // Validation flag for max time
 
-// Variable per guardar la temperatura màxima
+// Get stored maximum temperature from EEPROM
 float getStoredMaxTemperature();
 
-// Variable per guardar el temps màxim de funcionament
+// Get stored maximum operation time from EEPROM
 uint32_t getStoredMaxTime();
 
 /**
@@ -69,30 +69,30 @@ void clearCredentials();
 void printEEPROMContents();
 
 /**
- * @brief Guarda la temperatura a l'EEPROM.
- * @param temperature Temperatura a guardar (float).
- * @return true si s'ha guardat correctament, false altrament.
+ * @brief Save maximum temperature to EEPROM.
+ * @param temperature Temperature to save (float)
+ * @return true if saved successfully, false otherwise
  */
 bool saveMaxTemperature(float temperature);
 
 /**
- * @brief Llegeix la temperatura guardada a l'EEPROM.
- * @param temperature Variable on es guardarà la temperatura llegida.
- * @return true si s'ha llegit correctament, false altrament.
+ * @brief Load maximum temperature from EEPROM.
+ * @param temperature Variable where the temperature will be stored
+ * @return true if loaded successfully, false otherwise
  */
 bool loadMaxTemperature(float &temperature);
 
 /**
- * @brief Guarda el temps màxim a l'EEPROM.
- * @param maxTimeSeconds Temps màxim en segons (uint32_t).
- * @return true si s'ha guardat correctament, false altrament.
+ * @brief Save maximum time to EEPROM.
+ * @param maxTimeSeconds Maximum time in seconds (uint32_t)
+ * @return true if saved successfully, false otherwise
  */
 bool saveMaxTime(uint32_t maxTimeSeconds);
 
 /**
- * @brief Llegeix el temps màxim guardat a l'EEPROM.
- * @param maxTimeSeconds Variable on es guardarà el temps llegit.
- * @return true si s'ha llegit correctament, false altrament.
+ * @brief Load maximum time from EEPROM.
+ * @param maxTimeSeconds Variable where the time will be stored
+ * @return true if loaded successfully, false otherwise
  */
 bool loadMaxTime(uint32_t &maxTimeSeconds);
 

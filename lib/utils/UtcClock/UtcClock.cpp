@@ -1,9 +1,18 @@
+// UtcClock.cpp
+// UTC Clock Module
+// Purpose: Manages NTP time synchronization with drift compensation
+// Architecture: Periodic sync with validation, fallback to uptime estimate
+// Thread-Safety: Read-only after sync (atomic operations on ESP32)
+// Dependencies: esp_sntp, Arduino
+
 #include "UtcClock.h"
 
+// Third-party libraries
 #include <Arduino.h>
-#include <esp_sntp.h>
-
 #include <Log.h>
+
+// System headers
+#include <esp_sntp.h>
 
 #define SYNC_INTERVAL 1000 * 60 * 60
 
@@ -21,10 +30,10 @@ void UtcClock::init() {
 }
 
 uint64_t UtcClock::getTime(uint64_t millisTimestamp) {
-    syncronize();
+    synchronize();
     uint64_t currentMillis = (millisTimestamp > 0) ? millisTimestamp : millis();
 
-    if (isSyncronized) {
+    if (isSynchronized) {
         return lastSyncUnixMs + (currentMillis - lastSyncMillis);
     }
     Log::warn("NTP not synchronized, using uptime estimate");
@@ -32,10 +41,10 @@ uint64_t UtcClock::getTime(uint64_t millisTimestamp) {
 }
 
 bool UtcClock::hasLastSyncExpired() const {
-    return millis() - lastSyncMillis > SYNC_INTERVAL || !isSyncronized;
+    return millis() - lastSyncMillis > SYNC_INTERVAL || !isSynchronized;
 }
 
-void UtcClock::syncronize() {
+void UtcClock::synchronize() {
     Log::debug("Time sync: %lu", millis());
     if (!hasLastSyncExpired()) {
         return;
@@ -55,7 +64,7 @@ void UtcClock::syncronize() {
         return;
     }
 
-    if (!isSyncronized) {
+    if (!isSynchronized) {
         Log::debug("Initial sync");
         lastSyncMillis = syncMillis;
         lastSyncUnixMs = (uint64_t)newTime * 1000L;
@@ -72,5 +81,5 @@ void UtcClock::syncronize() {
         lastSyncMillis = syncMillis;
         lastSyncUnixMs = actual;
     }
-    isSyncronized = true;
+    isSynchronized = true;
 }

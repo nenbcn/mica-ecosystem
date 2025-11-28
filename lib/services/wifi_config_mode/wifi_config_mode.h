@@ -24,7 +24,4 @@ void deactivateWiFiConfigMode();
  */
 void wifiConfigModeTask(void *pvParameters);
 
-// Function to generate HTML options for available Wi-Fi networks // TODO: Implement?
-String generateWiFiOptions();
-
 #endif

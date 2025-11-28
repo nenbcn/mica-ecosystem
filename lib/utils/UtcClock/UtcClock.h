@@ -1,3 +1,7 @@
+// UtcClock.h
+#ifndef UTCCLOCK_H
+#define UTCCLOCK_H
+
 #include <cstdint>
 
 const long gmtOffsetSeconds = 0;
@@ -11,12 +15,14 @@ class UtcClock {
         
     private:
         bool hasLastSyncExpired() const;
-        void syncronize();
+        void synchronize();
 
         const char *ntpServerMain;
         const char *ntpServerBackup;
 
-        bool isSyncronized = false;
+        bool isSynchronized = false;
         uint64_t lastSyncMillis = 0;
         uint64_t lastSyncUnixMs = 0;
 };
+
+#endif // UTCCLOCK_H

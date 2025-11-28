@@ -1,15 +1,26 @@
 // wifi_config_mode.cpp
+// WiFi Configuration Mode Module
+// Purpose: Provides AP mode with web interface for WiFi credential configuration
+// Architecture: AsyncWebServer with network scanning and credential saving to EEPROM
+// Thread-Safety: FreeRTOS task manages AP lifecycle, web server runs async
+// Dependencies: ESPAsyncWebServer, eeprom_config, system_state
+
 #include "wifi_config_mode.h"
 
+// Project headers (alphabetically)
 #include "config.h"
 #include "eeprom_config.h"
 #include "system_state.h"
+
+// Third-party libraries
 #include <Arduino.h>
 #include <ESPAsyncWebServer.h>
+#include <Log.h>
+#include <WiFi.h>
+
+// System headers
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-#include <WiFi.h>
-#include <Log.h>
 
 AsyncWebServer server(80);
 String g_wifiOptions = ""; // Global variable to store detected SSIDs

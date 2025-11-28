@@ -1,22 +1,34 @@
+// mqtt_handler.cpp
+// MQTT Handler Module
+// Purpose: Generic MQTT communication layer for AWS IoT Core with device provisioning
+// Architecture: Queue-based pub/sub with callback registration, automatic credential provisioning
+// Thread-Safety: FreeRTOS queues for publish, mutex for subscriptions, PubSubClient internal locking
+// Dependencies: PubSubClient, WiFiClientSecure, ArduinoJson, HTTPClient, system_state
+
 #include "mqtt_handler.h"
 
+// Project headers (alphabetically)
 #include "config.h"
 #include "device_id.h"
 #include "eeprom_config.h"
 #include "secrets.h"
 #include "system_state.h"
+
+// Third-party libraries
 #include <Arduino.h>
 #include <ArduinoJson.h>
-#include <freertos/FreeRTOS.h>
-#include <freertos/queue.h>
-#include <freertos/semphr.h>
-#include <freertos/task.h>
 #include <HTTPClient.h>
+#include <Log.h>
 #include <Preferences.h>
 #include <PubSubClient.h>
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
-#include <Log.h>
+
+// System headers
+#include <freertos/FreeRTOS.h>
+#include <freertos/queue.h>
+#include <freertos/semphr.h>
+#include <freertos/task.h>
 
 const int MQTT_MAX_MESSAGE_SIZE = 8192;
 const int MAX_MQTT_SUBSCRIPTIONS = 10;

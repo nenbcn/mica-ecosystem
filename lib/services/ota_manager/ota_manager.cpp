@@ -1,15 +1,26 @@
 // ota_manager.cpp
+// OTA Manager Module
+// Purpose: Manages over-the-air firmware updates via HTTPS
+// Architecture: FreeRTOS task triggered by MQTT command, reads URL from preferences
+// Thread-Safety: Single-shot task, suspends other tasks during update
+// Dependencies: HTTPUpdate, WiFiClientSecure, Preferences, system_state
+
 #include "ota_manager.h"
 
+// Project headers (alphabetically)
 #include "secrets.h"
 #include "system_state.h"
+
+// Third-party libraries
 #include <Arduino.h>
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
 #include <HTTPUpdate.h>
+#include <Log.h>
 #include <Preferences.h>
 #include <WiFiClientSecure.h>
-#include <Log.h>
+
+// System headers
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 
 // Global secure client instance
 WiFiClientSecure secureClient;
@@ -29,7 +40,7 @@ void otaTask(void *pvParameters) {
         ESP.restart();
     }
 
-    // If no update was available (non-critical case), log and return to normal operation.// If no update was available (non-critical case), simply log and clean up.
+    // If no update was available (non-critical case), simply log and clean up.
     Log::info("OTA update task completed (no update available). Returning to normal operation.");
     setSystemState(SYSTEM_STATE_CONNECTED_MQTT);
     setOtaTaskHandle(NULL);
