@@ -376,11 +376,7 @@ void mqttPublishTask(void *pvParameters)
             if (mqttClient.connected())
             {
                 bool published = mqttClient.publish(msg.topic, msg.payload, msg.retain);
-                if (published)
-                {
-                    Log::debug("Published to %s: %s", msg.topic, msg.payload);
-                }
-                else
+                if (!published)
                 {
                     Log::error("Failed to publish to %s. MQTT State: %d", msg.topic, mqttClient.state());
                     // TODO: Consider re-queuing or storing failed messages
@@ -456,9 +452,8 @@ bool mqttPublish(const char* topic, const char* payload, bool retain)
     msg.retain = retain;
 
     // Enqueue message (wait up to 100ms if queue is full)
-    if (xQueueSend(mqttPublishQueue, &msg, pdMS_TO_TICKS(100)) == pdTRUE)
+    if (xQueueSend(mqttPublishQueue, &msg, 0) == pdTRUE)
     {
-        Log::debug("Enqueued MQTT message to %s", topic);
         return true;
     }
     else

@@ -233,10 +233,10 @@ void playToneMaxPower(int pin, int frequency, int duration) {
  * Ejecuta 5 pruebas con diferentes frecuencias.
  */
 void testBuzzer() {
-    Log::info("Testing buzzer on GPIO %d...", BUZZER_PIN);
+    Log::info("Buzzer test started on GPIO %d", BUZZER_PIN);
     
     // Test 1: Simple HIGH/LOW toggle at 1kHz (should click if buzzer is connected)
-    Log::info("Test 1: Digital toggle...");
+    Log::debug("Test 1: Digital toggle");
     for (int i = 0; i < 10; i++) {
         digitalWrite(BUZZER_PIN, HIGH);
         delayMicroseconds(500);
@@ -246,25 +246,25 @@ void testBuzzer() {
     vTaskDelay(pdMS_TO_TICKS(200));
     
     // Test 2: Low frequency tone (100 Hz - should be audible) with MAX POWER
-    Log::info("Test 2: Low tone 100Hz MAX POWER...");
+    Log::debug("Test 2: Low tone 100Hz");
     playToneMaxPower(BUZZER_PIN, 100, 500);
     vTaskDelay(pdMS_TO_TICKS(100));
     
     // Test 3: Medium frequency (1000 Hz) with MAX POWER
-    Log::info("Test 3: Mid tone 1000Hz MAX POWER...");
+    Log::debug("Test 3: Mid tone 1000Hz");
     playToneMaxPower(BUZZER_PIN, 1000, 500);
     vTaskDelay(pdMS_TO_TICKS(100));
     
     // Test 4: High frequency (2000 Hz) with MAX POWER
-    Log::info("Test 4: High tone 2000Hz MAX POWER...");
+    Log::debug("Test 4: High tone 2000Hz");
     playToneMaxPower(BUZZER_PIN, 2000, 500);
     vTaskDelay(pdMS_TO_TICKS(100));
     
     // Test 5: Very high frequency (4000 Hz) with MAX POWER
-    Log::info("Test 5: Very high tone 4000Hz MAX POWER...");
+    Log::debug("Test 5: Very high tone 4000Hz");
     playToneMaxPower(BUZZER_PIN, 4000, 500);
     
-    Log::info("Buzzer test completed. Did you hear anything?");
+    Log::info("Buzzer test completed");
 }
 
 /**

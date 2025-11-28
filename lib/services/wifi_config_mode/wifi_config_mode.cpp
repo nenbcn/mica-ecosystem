@@ -52,8 +52,7 @@ void initializeWiFiConfigMode() {
     // 2️⃣ Second, start the AP
     WiFi.mode(WIFI_AP);
     if (WiFi.softAP(AP_SSID, AP_PASSWORD)) {
-        Log::info("Access Point started with SSID: %s", AP_SSID);
-        Log::info("IP Address: %s", WiFi.softAPIP().toString().c_str());
+        Log::info("AP started: %s (IP: %s)", AP_SSID, WiFi.softAPIP().toString().c_str());
         notifySystemState(EVENT_WIFI_CONFIG_STARTED);
     } else {
         Log::error("Failed to start Access Point.");
@@ -63,7 +62,7 @@ void initializeWiFiConfigMode() {
 
     // 3️⃣ Third, configure the web server routes
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-        Log::info("HTTP Request received at /");
+        Log::debug("HTTP request at /");
 
         String html = R"rawliteral(
             <!DOCTYPE html>
@@ -151,10 +150,8 @@ void initializeWiFiConfigMode() {
     });
 
     // 4️⃣ Fourth, start the web server
-    Log::info("Starting Web Server...");
+    Log::info("Web server started: http://192.168.4.1");
     server.begin();
-    Log::info("Web Server started successfully.");
-    Log::info("Please, enter the following URL in your browser: http://192.168.4.1");
 }
 
 void wifiConfigModeTask(void *pvParameters) {
