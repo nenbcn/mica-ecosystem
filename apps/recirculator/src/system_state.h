@@ -11,13 +11,13 @@
 
 // System States
 typedef enum {
-    SYSTEM_STATE_CONNECTING,             // El sistema está intentando conectarse (estado inicial)
-    SYSTEM_STATE_CONNECTED_WIFI,         // Conectado a WiFi pero no a MQTT
-    SYSTEM_STATE_CONFIG_MQTT,           // Conectado a WiFi y configurando MQTT 
-    SYSTEM_STATE_CONNECTED_MQTT,         // Conectado a WiFi y MQTT
-    SYSTEM_STATE_CONFIG_MODE,            // Modo de configuración activado
+    SYSTEM_STATE_CONNECTING,             // System is attempting to connect (initial state)
+    SYSTEM_STATE_CONNECTED_WIFI,         // Connected to WiFi but not to MQTT
+    SYSTEM_STATE_CONFIG_MQTT,            // Connected to WiFi and configuring MQTT
+    SYSTEM_STATE_CONNECTED_MQTT,         // Connected to WiFi and MQTT
+    SYSTEM_STATE_CONFIG_MODE,            // Configuration mode activated
     SYSTEM_STATE_OTA_UPDATE,             // OTA update state
-    SYSTEM_STATE_ERROR                   // Error crítico detectado
+    SYSTEM_STATE_ERROR                   // Critical error detected
 } SystemState;
 
 // Task Notification Events
@@ -51,20 +51,26 @@ typedef enum {
 bool initializeSystemState();
 
 /**
- * @brief Sets the new system state safely.
- * @param state New state to set.
+ * @brief Sets the new system state safely using mutex protection.
+ * @param state New state to set
+ * @note Thread-safe: Can be called from any task
+ * @note Logs state changes automatically
  */
 void setSystemState(SystemState state);
 
 /**
- * @brief Gets the current system state safely.
- * @return Current system state.
+ * @brief Gets the current system state safely using mutex protection.
+ * @return Current system state, or SYSTEM_STATE_ERROR if mutex acquisition fails
+ * @note Thread-safe: Can be called from any task
  */
 SystemState getSystemState();
 
 /**
  * @brief Notifies the system of an event to handle state transitions.
- * @param event Event to notify (TaskNotificationEvent).
+ * @param event Event to notify (TaskNotificationEvent bitmask)
+ * @note Thread-safe: Can be called from any task or ISR
+ * @note Events are processed by state management task asynchronously
+ * @warning Does nothing if state manager task handle is NULL
  */
 void notifySystemState(TaskNotificationEvent event);
 

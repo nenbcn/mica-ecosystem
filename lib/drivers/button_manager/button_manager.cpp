@@ -1,4 +1,10 @@
 // button_manager.cpp
+// Button Manager Module
+// Purpose: Generic button handler with debouncing and long-press detection
+// Architecture: FreeRTOS task polls button state, sends events to system_state
+// Thread-Safety: ISR-safe, uses task notifications for event communication
+// Dependencies: system_state (for event notifications only)
+
 #include "button_manager.h"
 
 #include "config.h"

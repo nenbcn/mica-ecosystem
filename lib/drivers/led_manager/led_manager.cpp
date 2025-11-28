@@ -1,4 +1,10 @@
 // led_manager.cpp
+// LED Manager Module  
+// Purpose: Visual feedback system using NeoPixel (ESP32-C3) or discrete LEDs (ESP32)
+// Architecture: FreeRTOS task updates LED patterns based on system state
+// Thread-Safety: Reads system state via thread-safe accessor
+// Dependencies: Adafruit_NeoPixel (ESP32-C3 only), system_state
+
 #include "led_manager.h"
 
 #include "config.h"

@@ -20,7 +20,10 @@ void temperatureSensorTask(void *pvParameters);
 
 /**
  * @brief Get the latest temperature value (thread-safe).
- * @return float temperature in Celsius
+ * @return float Temperature in Celsius, or -127.0 if sensor error
+ * @note Thread-safe: Uses temperatureMutex for protected access
+ * @note Triggers buzzer alarm on first 3 sensor errors (max 1 per minute)
+ * @warning -127.0 indicates DS18B20 sensor disconnected or failed
  */
 float getLatestTemperature();
 

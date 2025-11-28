@@ -1,3 +1,10 @@
+// temperature_sensor.cpp
+// Temperature Sensor Module
+// Purpose: Reads DS18B20 temperature sensor and publishes telemetry via MQTT
+// Architecture: FreeRTOS task with mutex-protected state, publishes every 5 seconds
+// Thread-Safety: Uses temperatureMutex for thread-safe temperature access
+// Dependencies: DallasTemperature, OneWire, mqtt_handler, system_state
+
 #include "temperature_sensor.h"
 
 #include "config.h"
@@ -102,7 +109,7 @@ float getLatestTemperature()
     static int errorBuzzCount = 0;
     float temp = 0.0f;
 
-    // Llegeix la temperatura de manera thread-safe
+    // Read temperature in a thread-safe manner
     if (xSemaphoreTake(temperatureMutex, pdMS_TO_TICKS(10)) == pdTRUE)
     {
         temp = latestTemperature;
@@ -120,7 +127,7 @@ float getLatestTemperature()
         }
         else if (errorBuzzCount > 0 && (millis() - lastBuzzerErrorTime > 300000))
         {
-            // Si portem 5 minuts sense error, reiniciem el comptador
+            // If 5 minutes have passed without error, reset the counter
             errorBuzzCount = 0;
             lastBuzzerErrorTime = 0;
         }

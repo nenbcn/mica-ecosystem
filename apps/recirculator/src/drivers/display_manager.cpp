@@ -1,4 +1,11 @@
-#include "displayManager.h"
+// display_manager.cpp
+// Display Manager Module
+// Purpose: Manages SSD1306 OLED display for showing temperature, system status, and configuration
+// Architecture: FreeRTOS task that updates display every 1 second
+// Thread-Safety: Reads temperature and relay state from thread-safe accessors
+// Dependencies: Adafruit_SSD1306, temperature_sensor, relay_controller, eeprom_config
+
+#include "display_manager.h"
 
 #include "config.h"
 #include "eeprom_config.h"
@@ -40,14 +47,14 @@ void displayManagerTask(void *pvParameters) {
             maxTemperature = 30.0; // Default value if not set
         }
         display.clearDisplay();
-        // Títol
+        // Title
         display.setTextSize(1.8);
         display.setTextColor(SSD1306_WHITE);
         display.setCursor(0, 1);
         display.println("Recirculador d'aigua");
-        // Separador 
+        // Separator line
         display.drawLine(0, 15, SCREEN_WIDTH, 15, SSD1306_WHITE);
-        // Temperatura en gran 
+        // Temperature in large font 
         display.setTextSize(2);
         display.setCursor(0, 22);
         display.print("T: ");
@@ -59,7 +66,7 @@ void displayManagerTask(void *pvParameters) {
             display.print("C");
         }
 
-        // Estat sistema sota la temperatura
+        // System status below temperature
         display.setTextSize(1);
         display.setCursor(0, 46);
         if (digitalRead(RELAY_PIN) == HIGH) {
@@ -68,7 +75,7 @@ void displayManagerTask(void *pvParameters) {
             display.println("Sistema: OFF");
         }
 
-        // Segell de marca i proximament pressió
+        // Brand and future pressure info
         display.setCursor(0, 56);
         display.print("T.Max: ");
         display.print(maxTemperature, 2);

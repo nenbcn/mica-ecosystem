@@ -1,4 +1,10 @@
 // eeprom_config.cpp
+// EEPROM Configuration Module
+// Purpose: Persistent storage for WiFi credentials, temperature/time configuration
+// Architecture: Mutex-protected EEPROM access with validation flags
+// Thread-Safety: Uses eepromMutex for all read/write operations
+// Dependencies: EEPROM library, FreeRTOS semaphores
+
 #include "eeprom_config.h"
 
 #include <Arduino.h>
@@ -36,7 +42,7 @@ bool eepromInitialize() {
 uint32_t getStoredMaxTime() {
     uint32_t maxTime = 0;
     if (!loadMaxTime(maxTime)) {
-        return 120; // Default: 120 segons (2 minuts)
+        return 120; // Default: 120 seconds (2 minutes)
     }
     return maxTime;
 }
@@ -187,7 +193,7 @@ float getStoredMaxTemperature() {
     return temp;
 }
 
-// Guarda la temperatura a l'EEPROM
+// Save temperature to EEPROM
 bool saveMaxTemperature(float temperature) {
     if (eepromMutex == NULL) {
         Log::error("EEPROM mutex not initialized.");
@@ -213,7 +219,7 @@ bool saveMaxTemperature(float temperature) {
     }
 }
 
-// Llegeix la temperatura de l'EEPROM
+// Read temperature from EEPROM
 bool loadMaxTemperature(float &temperature) {
     if (eepromMutex == NULL) {
         Log::error("EEPROM mutex not initialized.");
@@ -238,7 +244,7 @@ bool loadMaxTemperature(float &temperature) {
     }
 }
 
-// Guarda el temps màxim a l'EEPROM
+// Save max time to EEPROM
 bool saveMaxTime(uint32_t maxTimeSeconds) {
     if (eepromMutex == NULL) {
         Log::error("EEPROM mutex not initialized.");
@@ -264,7 +270,7 @@ bool saveMaxTime(uint32_t maxTimeSeconds) {
     }
 }
 
-// Llegeix el temps màxim de l'EEPROM
+// Read max time from EEPROM
 bool loadMaxTime(uint32_t &maxTimeSeconds) {
     if (eepromMutex == NULL) {
         Log::error("EEPROM mutex not initialized.");

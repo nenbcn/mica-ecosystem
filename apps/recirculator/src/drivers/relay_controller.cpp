@@ -1,3 +1,10 @@
+// relay_controller.cpp
+// Relay Controller Module
+// Purpose: Centralized relay state management with safety timers and MQTT integration
+// Architecture: FreeRTOS task monitors temperature/time limits, MQTT callbacks handle commands
+// Thread-Safety: Single source of truth for relay state (isRelayPhysicallyOn)
+// Dependencies: mqtt_handler, temperature_sensor, eeprom_config, system_state
+
 #include "relay_controller.h"
 
 #include "config.h"
@@ -352,7 +359,7 @@ void relayControllerTask(void *pvParameters) {
 
     TickType_t startTime = 0;
     bool timerStarted = false;
-    uint32_t maxTimeSeconds = 120; // Default 2 minuts
+    uint32_t maxTimeSeconds = 120; // Default 2 minutes
     TickType_t maxRunTime = pdMS_TO_TICKS(maxTimeSeconds * 1000);
     uint32_t lastLoggedSecond = 0; // Track last logged interval to avoid duplicate logs
     bool maxTempLoaded = false; // Flag to load max temp only once per relay activation

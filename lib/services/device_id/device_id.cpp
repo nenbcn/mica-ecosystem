@@ -1,3 +1,10 @@
+// device_id.cpp
+// Device ID Module
+// Purpose: Generates unique device identifier from MAC address
+// Architecture: Simple utility function, no state
+// Thread-Safety: Read-only WiFi MAC access (thread-safe)
+// Dependencies: WiFi library
+
 #include "device_id.h"
 
 #include <Arduino.h>

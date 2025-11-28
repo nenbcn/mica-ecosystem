@@ -1,4 +1,10 @@
 // main.cpp
+// Main Application Entry Point
+// Purpose: Initializes the recirculator system and starts FreeRTOS scheduler
+// Architecture: Minimal setup - delegates all work to system_state module
+// Thread-Safety: Single-threaded initialization, FreeRTOS tasks managed by system_state
+// Dependencies: system_state, Arduino, Log
+
 #include "system_state.h"
 #include <Arduino.h>
 #include <Log.h>

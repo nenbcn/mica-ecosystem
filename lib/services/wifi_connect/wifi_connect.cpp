@@ -1,4 +1,10 @@
-/// wifi_connect.cpp
+// wifi_connect.cpp
+// WiFi Connection Module
+// Purpose: Manages WiFi station mode connection with auto-reconnect
+// Architecture: FreeRTOS task monitors connection status, loads credentials from EEPROM
+// Thread-Safety: Uses wifiMutex (currently unused but reserved)
+// Dependencies: WiFi library, eeprom_config, system_state
+
 #include "wifi_connect.h"
 
 #include "eeprom_config.h"

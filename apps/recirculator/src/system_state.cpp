@@ -1,10 +1,16 @@
 // system_state.cpp
+// System State Management Module
+// Purpose: Orchestrates system-wide state transitions and task lifecycle management
+// Architecture: Event-driven FSM with FreeRTOS task coordination
+// Thread-Safety: Uses mutexes for state access, task notifications for events
+// Dependencies: All system modules (WiFi, MQTT, sensors, drivers, etc.)
+
 #include "system_state.h"
 
 #include "button_manager.h"
 #include "config.h"
 #include "device_id.h"
-#include "displayManager.h"
+#include "display_manager.h"
 #include "eeprom_config.h"
 #include "led_manager.h"
 #include "mqtt_handler.h"
@@ -31,17 +37,12 @@ static TaskHandle_t g_wifiConnectTaskHandle = NULL;    // WiFi connection task
 static TaskHandle_t g_wifiConfigTaskHandle = NULL;     // WiFi configuration mode task
 static TaskHandle_t g_mqttConnectTaskHandle = NULL;    // MQTT connection task (AWS Credencials)
 static TaskHandle_t g_mqttTaskHandle = NULL;           // MQTT task
-//static TaskHandle_t g_loraTaskHandle = NULL;           // LoRa receiver task
 static TaskHandle_t g_ledTaskHandle = NULL;            // LED management task
 static TaskHandle_t g_buttonTaskHandle = NULL;         // Button management task
 static TaskHandle_t g_otaTaskHandle = NULL;            // OTA update task
-//static TaskHandle_t g_pinReceiverTaskHandle = NULL;    // Pin receiver task
 static TaskHandle_t g_displayManagerTaskHandle = NULL; // Display manager task
 static TaskHandle_t g_temperatureSensorTaskHandle = NULL; // Temperature sensor task
 static TaskHandle_t g_relayTaskHandle = NULL;          // Relay controller task
-
-// Note: Relay state is managed directly by relay_controller.cpp
-// No need for duplicate state variables here
 
 void setOtaTaskHandle(TaskHandle_t handle) {
     g_otaTaskHandle = handle;
@@ -83,16 +84,6 @@ bool initializeSystemState() {
         return false;
     }
 
-    // We don't use LoRa in Wifi transmit mode
-    // if (!initializeLoRaReceiver()) {
-    //     return false;
-    // }
-   /* No utilitzarem més el pin receiver, però el deixem aquí per futur ús
-    if (!initializePinReceiver()) {
-        Log::error("Failed to initialize Pin Receiver.");
-        return false;
-    }*/
-
     if (!initializeDisplayManager()) {
         Log::error("Failed to initialize Display Manager.");
         return false;
@@ -103,8 +94,7 @@ bool initializeSystemState() {
     if (!initializeTemperatureSensor()) {
         Log::error("Failed to initialize Temperature Sensor.");
         return false;
-    } // Inicialitza el sensor de temperatura
-
+    }
 
     // Create State Management Task FIRST to avoid NULL handle errors
     if (xTaskCreate(stateManagementTask, "State Management Task", 4096, NULL, 3, &g_stateManagerTaskHandle) != pdPASS) {
@@ -135,17 +125,6 @@ bool initializeSystemState() {
         Log::error("Failed to create MQTT Task.");
         return false;
     }
-
-    //if (xTaskCreate(loraReceiverTask, "LoRa Receiver Task", 4096, NULL, 2, &g_loraTaskHandle) != pdPASS) {
-        //Log::error("Failed to create LoRa Receiver Task.");
-    //}
-    
-    // Replace LoRa task with Pin Receiver task
-  /*  if (xTaskCreate(pinReceiverTask, "Pin Receiver Task", 4096, NULL, 2, &g_pinReceiverTaskHandle) != pdPASS) {
-        Log::error("Failed to create Pin Receiver Task.");
-        return false;
-    }
-*/
 
     if (xTaskCreate(temperatureSensorTask, "Temperature Sensor Task", 4096, NULL, 1, &g_temperatureSensorTaskHandle) != pdPASS) {
         Log::error("Failed to create Temperature Sensor Task.");

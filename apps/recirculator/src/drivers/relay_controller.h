@@ -16,23 +16,41 @@ void initializeRelayController();
 void relayControllerTask(void *pvParameters);
 
 /**
- * @brief Activa el relay físicamente y publica el estado por MQTT.
- * Esta es la única función que debe usarse para encender el relay.
- * @return true si se activó correctamente
+ * @brief Activates the relay physically and publishes the state via MQTT.
+ * 
+ * This is the centralized function for turning on the relay. It:
+ * - Sets GPIO pin HIGH
+ * - Updates internal state flag
+ * - Publishes power state to MQTT with retain=true
+ * - Starts safety timer in relay controller task
+ * 
+ * @return true if activated successfully, false if already active
+ * @note Thread-safe: Can be called from any task
+ * @note Idempotent: Multiple calls ignored if already active
  */
 bool activateRelay();
 
 /**
- * @brief Desactiva el relay físicamente y publica el estado por MQTT.
- * Esta es la única función que debe usarse para apagar el relay.
- * @param reason Razón del apagado (para logging): "manual", "timeout", "temperature"
- * @return true si se desactivó correctamente
+ * @brief Deactivates the relay physically and publishes the state via MQTT.
+ * 
+ * This is the centralized function for turning off the relay. It:
+ * - Sets GPIO pin LOW
+ * - Updates internal state flag
+ * - Publishes power state to MQTT with retain=true
+ * - Logs the deactivation reason
+ * 
+ * @param reason Reason for shutdown (for logging): "manual", "timeout", "temperature", "command", "button"
+ * @return true if deactivated successfully, false if already inactive
+ * @note Thread-safe: Can be called from any task
+ * @note Idempotent: Multiple calls ignored if already inactive
  */
 bool deactivateRelay(const char* reason);
 
 /**
- * @brief Consulta si el relay está actualmente activo.
- * @return true si el relay está encendido, false si está apagado
+ * @brief Checks if the relay is currently active.
+ * @return true if relay is on, false if relay is off
+ * @note Thread-safe: Reads static bool (atomic on single-core ESP32)
+ * @note Use this instead of digitalRead(RELAY_PIN) for consistency
  */
 bool isRelayActive();
 
