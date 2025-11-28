@@ -1,0 +1,26 @@
+# PlatformIO
+.pio/
+.vscode/
+
+# Secrets - NEVER commit credentials
+libs/core/secrets.h
+**/secrets.h
+
+# IDE and OS
+.DS_Store
+*.swp
+*.swo
+.idea/
+
+# Build artifacts
+*.bin
+*.elf
+*.map
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Logs
+*.log
