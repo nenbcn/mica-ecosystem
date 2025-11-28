@@ -7,18 +7,23 @@
 
 #include "relay_controller.h"
 
+// Project headers (alphabetically)
 #include "config.h"
 #include "device_id.h"
 #include "eeprom_config.h"
 #include "mqtt_handler.h"
 #include "system_state.h"
 #include "temperature_sensor.h"
+
+// Third-party libraries
 #include <Arduino.h>
 #include <ArduinoJson.h>
+#include <Log.h>
+
+// System headers
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <string.h>
-#include <Log.h>
 
 // Static variables for relay state management
 static bool isRelayPhysicallyOn = false;
@@ -357,9 +362,13 @@ void relayControllerTask(void *pvParameters) {
     // Test buzzer at startup
     testBuzzer();
 
+    // Default configuration constants
+    constexpr uint32_t DEFAULT_MAX_TIME_SECONDS = 120; // Default: 2 minutes
+    constexpr uint32_t STATUS_LOG_INTERVAL_SECONDS = 5; // Log status every 5 seconds
+    
     TickType_t startTime = 0;
     bool timerStarted = false;
-    uint32_t maxTimeSeconds = 120; // Default 2 minutes
+    uint32_t maxTimeSeconds = DEFAULT_MAX_TIME_SECONDS;
     TickType_t maxRunTime = pdMS_TO_TICKS(maxTimeSeconds * 1000);
     uint32_t lastLoggedSecond = 0; // Track last logged interval to avoid duplicate logs
     bool maxTempLoaded = false; // Flag to load max temp only once per relay activation
@@ -388,8 +397,8 @@ void relayControllerTask(void *pvParameters) {
             uint32_t elapsedSeconds = elapsedTicks / pdMS_TO_TICKS(1000);
             uint32_t remainingSeconds = (maxTimeSeconds > elapsedSeconds) ? (maxTimeSeconds - elapsedSeconds) : 0;
             
-            // Log and publish status every 5 seconds (using 5-second intervals to catch the timing better)
-            uint32_t logInterval = elapsedSeconds / 5; // Calculate which 5-second interval we're in
+            // Log and publish status every STATUS_LOG_INTERVAL_SECONDS
+            uint32_t logInterval = elapsedSeconds / STATUS_LOG_INTERVAL_SECONDS; // Calculate which interval we're in
             if (logInterval > 0 && logInterval != lastLoggedSecond) {
                 Log::info("Relay ON: %lu/%lu s | Remaining: %lu s | Temp: %.1f°C", 
                           elapsedSeconds, maxTimeSeconds, remainingSeconds, temp);

@@ -7,14 +7,19 @@
 
 #include "wifi_connect.h"
 
+// Project headers (alphabetically)
 #include "eeprom_config.h"
 #include "system_state.h"
+
+// Third-party libraries
 #include <Arduino.h>
+#include <Log.h>
+#include <WiFi.h>
+
+// System headers
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
 #include <freertos/task.h>
-#include <WiFi.h>
-#include <Log.h>
 
 // Internal Variables
 static SemaphoreHandle_t wifiMutex = NULL;

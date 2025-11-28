@@ -27,18 +27,22 @@ void setNeoPixelColor(uint8_t red, uint8_t green, uint8_t blue) {
 
 void initializeLedManager() {
 #ifdef ESP32_C3
+    // NeoPixel configuration
+    constexpr uint8_t NEOPIXEL_BRIGHTNESS = 50; // Set brightness to ~20% (0-255)
+    
     // Initialize NeoPixel for ESP32-C3
     strip.begin();
-    strip.setBrightness(50); // Set brightness to 50% (0-255)
+    strip.setBrightness(NEOPIXEL_BRIGHTNESS);
     strip.show(); // Initialize all pixels to 'off'
     
     // Test sequence for NeoPixel
+    constexpr uint32_t LED_TEST_DELAY_MS = 500;
     setNeoPixelColor(255, 0, 0); // Red
-    vTaskDelay(pdMS_TO_TICKS(500));
+    vTaskDelay(pdMS_TO_TICKS(LED_TEST_DELAY_MS));
     setNeoPixelColor(0, 255, 0); // Green
-    vTaskDelay(pdMS_TO_TICKS(500));
+    vTaskDelay(pdMS_TO_TICKS(LED_TEST_DELAY_MS));
     setNeoPixelColor(0, 0, 255); // Blue
-    vTaskDelay(pdMS_TO_TICKS(500));
+    vTaskDelay(pdMS_TO_TICKS(LED_TEST_DELAY_MS));
     setNeoPixelColor(0, 0, 0); // Off
     
     Log::info("LED Manager initialized with NeoPixel (ESP32-C3).");

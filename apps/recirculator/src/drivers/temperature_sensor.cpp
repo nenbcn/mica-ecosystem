@@ -7,19 +7,24 @@
 
 #include "temperature_sensor.h"
 
+// Project headers (alphabetically)
 #include "config.h"
 #include "device_id.h"
 #include "mqtt_handler.h"
 #include "system_state.h"
+
+// Third-party libraries
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <DallasTemperature.h>
+#include <Log.h>
+#include <OneWire.h>
+
+// System headers
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
 #include <freertos/task.h>
-#include <OneWire.h>
 #include <stdint.h>
-#include <Log.h>
 
 const uint32_t TEMPERATURE_READ_INTERVAL = 5000; // ms - read every 5 seconds
 

@@ -7,13 +7,16 @@
 
 #include "eeprom_config.h"
 
+// Third-party libraries
 #include <Arduino.h>
 #include <EEPROM.h>
+#include <Log.h>
+
+// System headers
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
 #include <stdint.h>
 #include <string.h>
-#include <Log.h>
 
 // Mutex to protect EEPROM access
 SemaphoreHandle_t eepromMutex = NULL;

@@ -7,6 +7,7 @@
 
 #include "system_state.h"
 
+// Project headers (alphabetically)
 #include "button_manager.h"
 #include "config.h"
 #include "device_id.h"
@@ -19,12 +20,16 @@
 #include "temperature_sensor.h"
 #include "wifi_config_mode.h"
 #include "wifi_connect.h"
+
+// Third-party libraries
 #include <Arduino.h>
+#include <Log.h>
+#include <UtcClock.h>
+
+// System headers
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
-#include <freertos/task.h>
-#include <UtcClock.h>
-#include <Log.h> 
+#include <freertos/task.h> 
 
 // Internal Variables
 volatile SystemState g_systemState = SYSTEM_STATE_CONNECTING; // Initial system state

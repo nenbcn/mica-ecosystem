@@ -7,16 +7,21 @@
 
 #include "display_manager.h"
 
+// Project headers (alphabetically)
 #include "config.h"
 #include "eeprom_config.h"
 #include "temperature_sensor.h"
+
+// Third-party libraries
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <Arduino.h>
+#include <Log.h>
 #include <Wire.h>
+
+// System headers
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-#include <Log.h>
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
@@ -41,10 +46,12 @@ bool initializeDisplayManager() {
 }
 
 void displayManagerTask(void *pvParameters) {
+    constexpr float DEFAULT_MAX_TEMPERATURE = 30.0f; // Default target temperature in Celsius
+    
     while (true) {
         float maxTemperature = getStoredMaxTemperature();
         if (isnan(maxTemperature)) {
-            maxTemperature = 30.0; // Default value if not set
+            maxTemperature = DEFAULT_MAX_TEMPERATURE;
         }
         display.clearDisplay();
         // Title
