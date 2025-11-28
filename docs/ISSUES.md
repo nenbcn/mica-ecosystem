@@ -1,13 +1,18 @@
-# Issues - MICA Ecosystem Monorepo Refactoring
+# Issues - MICA Ecosystem Monorepo
 
 > **Basado en las recomendaciones del ingeniero informático gaesca04**  
 > Plan completo en: `REFACTORING-PLAN.md`
 
-**Nota**: Los números de issue se asignarán automáticamente al crearlas en GitHub. Este documento usa nombres descriptivos y se actualizará con links conforme se vayan creando.
+**Repositorio**: https://github.com/nenbcn/mica-ecosystem
+
+**Nota sobre issues antiguas**: Las issues de FASE 1 y FASE 2 fueron completadas en el repositorio antiguo `mica-recirculator` y han sido migradas a este monorepo. Las referencias a GitHub Issues antiguas (#7-#15) corresponden al repo anterior.
 
 ---
 
-## 🔴 FASE 1: PRE-MIGRACIÓN (Repo Actual)
+## 🔴 FASE 1: PRE-MIGRACIÓN (Completada en repo antiguo)
+
+> **✅ Todas las issues de esta fase fueron cerradas en el repositorio mica-recirculator**  
+> Las issues #7, #8, #9, #10 están cerradas en: https://github.com/nenbcn/mica-recirculator
 
 ### Refactor: Make mqtt_handler generic with queue architecture
 **GitHub Issue**: [#7](https://github.com/micaeco/mica-recirculator/issues/7)  
@@ -469,10 +474,13 @@ Closes #10
 
 ---
 
-## 🟡 FASE 2: MIGRACIÓN MONOREPO
+## 🟡 FASE 2: MIGRACIÓN MONOREPO (Completada)
+
+> **✅ Todas las issues de esta fase fueron completadas el 28 Nov 2025**  
+> El monorepo está creado, configurado y compilando exitosamente
 
 ### Chore: Create mica-ecosystem monorepo structure
-**GitHub Issue**: [#11](https://github.com/micaeco/mica-recirculator/issues/11)  
+**GitHub Issue**: Cerrada en repo antiguo  
 **Prioridad**: 🟡 **MEDIA**  
 **Estimación**: 30 minutos  
 **Dependencias**: Phase 1 complete  
@@ -1057,13 +1065,14 @@ Architecture validated by: gaesca04
 
 ---
 
-## 📚 FASE 3: DOCUMENTACIÓN
+## 📚 FASE 3: DOCUMENTACIÓN Y MEJORAS
 
 ### Docs: Complete monorepo documentation
-**GitHub Issue**: [Will be created]  
+**GitHub Issue**: [#1](https://github.com/nenbcn/mica-ecosystem/issues/1)  
 **Prioridad**: 🟡 **MEDIA**  
 **Estimación**: 2 horas  
-**Dependencias**: "Hardware validation in monorepo"
+**Dependencias**: Monorepo funcionando  
+**Estado**: 🔵 **EN PROGRESO**
 
 **Descripción**:
 Crear y actualizar documentación completa del ecosistema monorepo, explicando arquitectura, módulos compartidos y guías de desarrollo.
