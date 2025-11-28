@@ -30,22 +30,47 @@ Diseñado por: **gaesca04** (ingeniero informático, experto en arquitectura de 
 
 ```
 mica-ecosystem/
-├── apps/                    # Aplicaciones específicas por dispositivo
+├── platformio.ini           # ⚙️ Config PlatformIO raíz (define entornos)
+├── src/                     # 🔗 Symlink -> apps/recirculator/src (PlatformIO compatibility)
+├── apps/                    # 📱 Aplicaciones específicas por dispositivo
 │   └── recirculator/        # Control de bomba de recirculación
-│       ├── platformio.ini   # Config PlatformIO (apunta a libs compartidas)
 │       └── src/
-│           ├── application/ # Lógica de negocio del recirculator
-│           └── drivers/     # Hardware específico (relay, temp sensor)
+│           ├── application/ # Lógica de negocio (main, system_state)
+│           ├── services/    # WiFi, MQTT, OTA, EEPROM, device_id
+│           ├── drivers/     # Hardware (relay, temp sensor, display, buttons, LEDs)
+│           ├── config.h     # Configuración hardware específica
+│           └── secrets.h    # Credenciales WiFi/MQTT (gitignored)
+├── lib/                     # 📚 Librerías personalizadas compartidas
+│   ├── Log/                 # Sistema de logging
+│   └── UtcClock/            # Gestión de tiempo UTC
 ├── libs/
-│   └── core/                # Módulos compartidos entre todos los dispositivos
+│   └── core/                # 🔮 Módulos compartidos (futuro - migración pendiente)
 │       ├── application/     # system_state (coordinador de eventos)
-│       ├── services/        # WiFi, MQTT, OTA, EEPROM, config
-│       ├── drivers/         # button_manager, led_manager (compartidos)
-│       ├── utils/           # Log, UtcClock
-│       ├── config.h         # Configuración de hardware
-│       └── secrets.h        # Credenciales (gitignored)
-└── docs/                    # Documentación del ecosistema
+│       ├── services/        # WiFi, MQTT, OTA, EEPROM
+│       ├── drivers/         # button_manager, led_manager
+│       └── utils/           # Utilidades compartidas
+└── docs/                    # 📖 Documentación del ecosistema
 ```
+
+### Estructura PlatformIO
+
+El proyecto usa **un único `platformio.ini`** en la raíz con **múltiples entornos**:
+
+```ini
+[platformio]
+default_envs = esp32_c3_recirculator
+
+[env:esp32_c3_recirculator]
+platform = espressif32
+board = seeed_xiao_esp32c3
+# El código está en apps/recirculator/src/
+# Accesible mediante symlink src -> apps/recirculator/src
+
+[env:esp32_c3_gateway]  # Futuro
+# Usará apps/gateway/src/
+```
+
+**Ventaja del symlink**: PlatformIO espera código en `src/`, el symlink apunta a `apps/recirculator/src/` manteniendo la organización del monorepo.
 
 ## 🌟 Dispositivos
 
@@ -76,18 +101,91 @@ Hub de sensores con transmisión LoRa
 
 ## 🛠️ Desarrollo
 
+### Compilar Firmware
+
+**Compilar el recirculator:**
+```bash
+# Desde la raíz del monorepo
+~/.platformio/penv/bin/platformio run -e esp32_c3_recirculator
+
+# O simplemente (usa el entorno por defecto)
+~/.platformio/penv/bin/platformio run
+```
+
+**Flashear a dispositivo:**
+```bash
+~/.platformio/penv/bin/platformio run -e esp32_c3_recirculator --target upload
+```
+
+**Monitor serial:**
+```bash
+~/.platformio/penv/bin/platformio device monitor
+```
+
+**Limpiar build:**
+```bash
+~/.platformio/penv/bin/platformio run --target clean
+```
+
+### Cambiar Entre Aplicaciones
+
+Para trabajar en diferentes dispositivos, cambia el symlink `src`:
+
+```bash
+# Trabajar en recirculator (actual)
+ln -sfn apps/recirculator/src src
+
+# Trabajar en gateway (futuro)
+ln -sfn apps/gateway/src src
+```
+
+O actualiza `default_envs` en `platformio.ini` y compila con `-e <entorno>`.
+
 ### Añadir Nueva Aplicación
-1. Crear estructura en `apps/nuevo-dispositivo/src/{application,drivers}/`
-2. Copiar `platformio.ini` de recirculator
-3. Ajustar `lib_extra_dirs` para apuntar a `../../libs/core/`
-4. Reutilizar módulos compartidos, implementar solo drivers específicos
+
+1. **Crear estructura:**
+   ```bash
+   mkdir -p apps/nuevo-dispositivo/src/{application,services,drivers}
+   ```
+
+2. **Copiar archivos base:**
+   ```bash
+   cp apps/recirculator/src/config.h apps/nuevo-dispositivo/src/
+   cp apps/recirculator/src/secrets.h apps/nuevo-dispositivo/src/
+   ```
+
+3. **Añadir entorno en `platformio.ini`:**
+   ```ini
+   [env:nuevo_dispositivo]
+   platform = espressif32
+   board = <tu_board>
+   framework = arduino
+   build_flags = 
+       -I src
+       -I src/application
+       -I src/services  
+       -I src/drivers
+   lib_extra_dirs = libs/core
+   ```
+
+4. **Cambiar symlink y compilar:**
+   ```bash
+   ln -sfn apps/nuevo-dispositivo/src src
+   platformio run -e nuevo_dispositivo
+   ```
 
 ### Modificar Módulo Compartido
-⚠️ **Cuidado**: Cambios en `libs/core/` afectan **todos los dispositivos**
+
+⚠️ **Cuidado**: Cambios en `lib/` o `libs/core/` afectan **todos los dispositivos**
 - Mantener retrocompatibilidad
 - Usar dependency injection (parámetros, callbacks)
 - Hacer device-agnostic
 - Testing exhaustivo antes de commitear
+- Compilar **todos** los entornos para verificar:
+  ```bash
+  platformio run -e esp32_c3_recirculator
+  platformio run -e esp32_c3_gateway
+  ```
 
 ## 📚 Documentación
 
