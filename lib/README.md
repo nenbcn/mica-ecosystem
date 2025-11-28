@@ -12,26 +12,16 @@ PlatformIO automatically finds and links these libraries when building any app.
 
 ```
 lib/
-├── application/     # Coordination layer
 ├── services/        # Business logic (no direct hardware)
 ├── drivers/         # Hardware abstraction (shared)
 └── utils/           # Helper utilities
 ```
 
+**Note**: The `application/` layer (`system_state`) lives in `apps/*/src/` as it's app-specific coordination.
+
 ---
 
 ## 🏗️ Layers
-
-### application/
-**Purpose**: System coordination and state management
-
-| Module | Description |
-|--------|-------------|
-| `system_state` | Event coordinator, state machine, task lifecycle |
-
-**Shared by**: All apps (recirculator, gateway)
-
----
 
 ### services/
 **Purpose**: Business services without direct hardware access
@@ -81,7 +71,7 @@ PlatformIO automatically includes these libraries. In your app code:
 
 ```cpp
 // apps/recirculator/src/main.cpp
-#include "system_state.h"     // From lib/application/system_state/
+#include "system_state.h"     // From apps/recirculator/src/
 #include "wifi_connect.h"     // From lib/services/wifi_connect/
 #include "mqtt_handler.h"     // From lib/services/mqtt_handler/
 #include "button_manager.h"   // From lib/drivers/button_manager/
@@ -102,8 +92,8 @@ No special configuration needed in `platformio.ini` - PlatformIO finds `lib/` fr
 1. **Choose the correct layer**:
    - No hardware access → `services/`
    - Hardware abstraction → `drivers/`
-   - Coordination logic → `application/`
    - Helper functions → `utils/`
+   - App coordination → `apps/*/src/` (app-specific)
 
 2. **Create module directory**:
    ```bash
