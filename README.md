@@ -14,13 +14,10 @@ mica-ecosystem/
 │   ├── recirculator/        # Water pump controller (ESP32-C3)
 │   └── gateway/             # LoRa sensor hub (future)
 │
-├── lib/                     # Shared libraries (auto-discovered by PlatformIO)
-│   ├── wifi_connect/        # WiFi management
-│   ├── mqtt_handler/        # AWS IoT MQTT
-│   ├── ota_manager/         # OTA updates
-│   ├── button_manager/      # Generic button handler
-│   ├── led_manager/         # Status LED (WS2812B)
-│   └── [5 more modules...]  # See docs/architecture.md
+├── lib/                     # Shared libraries (organized by layer)
+│   ├── services/            # Business logic (WiFi, MQTT, OTA, etc.)
+│   ├── drivers/             # Hardware abstraction (buttons, LEDs)
+│   └── utils/               # Helpers (Log, UtcClock)
 │
 └── include/                 # Global configuration
     ├── config.h             # Hardware pins

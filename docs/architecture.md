@@ -17,10 +17,10 @@ The system follows a **4-layer architecture pattern** for clear separation of co
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                     APPLICATION LAYER                               │
-│  Location: lib/application/ + apps/*/src/main.cpp                   │
+│  Location: apps/*/src/ (app-specific)                               │
 │                                                                      │
-│  - system_state  (Shared: Event Coordinator)                        │
-│  - main.cpp      (Per-app: Entry Point)                             │
+│  - system_state  (Event Coordinator - per app)                      │
+│  - main.cpp      (Entry Point - per app)                            │
 └─────────────────────────────┬───────────────────────────────────────┘
                               │
 ┌─────────────────────────────▼───────────────────────────────────────┐
@@ -147,14 +147,22 @@ Each app has its own `platformio.ini`:
 platform = espressif32
 board = seeed_xiao_esp32c3
 framework = arduino
-build_flags = -I../../include  # Global configs
+build_flags = 
+    -I../../include  # Global configs
+    -Ilib/services/wifi_connect  # Shared libraries
+    -Ilib/drivers/button_manager
+    # etc.
+lib_extra_dirs = 
+    lib/services
+    lib/drivers
+    lib/utils
 lib_deps = 
     adafruit/Adafruit NeoPixel
     knolleary/PubSubClient
     # External dependencies
 ```
 
-**PlatformIO auto-discovers** `lib/` from workspace root. No `lib_extra_dirs` needed.
+**PlatformIO discovers** `lib/` subdirectories via `lib_extra_dirs`.
 
 ---
 
@@ -168,8 +176,10 @@ cp apps/recirculator/platformio.ini apps/my_device/
 
 ```cpp
 // apps/my_device/src/main.cpp
-#include "wifi_connect.h"  // From lib/ (shared)
-#include "mqtt_handler.h"  // From lib/ (shared)
+#include "wifi_connect.h"  // From lib/services/wifi_connect/
+#include "mqtt_handler.h"  // From lib/services/mqtt_handler/
+#include "button_manager.h"  // From lib/drivers/button_manager/
+#include "Log.h"  // From lib/utils/Log/
 
 void setup() {
     initWiFi();
@@ -178,7 +188,7 @@ void setup() {
 }
 ```
 
-All shared services automatically available!
+All shared libraries automatically available via `lib_extra_dirs`!
 
 ---
 
