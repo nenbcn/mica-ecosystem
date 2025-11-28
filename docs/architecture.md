@@ -1,189 +1,329 @@
-# MICA Recirculator - System Architecture
+# MICA Ecosystem - System Architecture
 
 > **Architecture by**: gaesca04 (Computer Engineer)  
-> **Last Updated**: 28 November 2025
+> **Last Updated**: 28 November 2025  
+> **Type**: Monorepo with multiple apps sharing common libraries
 
-## 1. System Overview
+## 1. Ecosystem Overview
 
-ESP32-C3 water recirculation controller with temperature monitoring, relay control, and AWS IoT MQTT telemetry.
+**MICA Ecosystem** is an IoT monorepo containing multiple applications that share common services and drivers:
 
-**Platform**: ESP32-C3, FreeRTOS, Arduino Framework
+### Applications
+1. **Recirculator** (Production): ESP32-C3 water recirculation controller with temperature monitoring
+2. **Gateway** (Future): ESP32 hub for sensors with LoRa transmission
 
-Part of MICA IoT ecosystem. Core modules designed for reuse across multiple devices (Gateway, sensors, etc.).
+### Shared Components
+- **Services**: WiFi, MQTT, OTA, storage (business logic)
+- **Drivers**: Buttons, LEDs (hardware abstraction)
+- **Utils**: Logging, time management
 
-## 2. Layered Architecture
-
-The system follows a **3-layer architecture pattern** for clear separation of concerns:
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                   APPLICATION LAYER                         │
-│  (Business Logic, State Coordination, Entry Point)          │
-│                                                              │
-│  - system_state  (Event Coordinator)                        │
-│  - main          (Entry Point)                              │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-┌──────────────────────────▼──────────────────────────────────┐
-│                    SERVICES LAYER                           │
-│  (Business Services, No Direct Hardware Access)             │
-│                                                              │
-│  - wifi_connect      (WiFi management)                      │
-│  - wifi_config_mode  (AP + Captive Portal)                  │
-│  - mqtt_handler      (AWS IoT communication)                │
-│  - ota_manager       (Firmware updates)                     │
-│  - eeprom_config     (Persistent storage)                   │
-│  - device_id         (Unique device identifier)             │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-┌──────────────────────────▼──────────────────────────────────┐
-│                    DRIVERS LAYER                            │
-│  (Hardware Abstraction, GPIO/I2C/1-Wire Interaction)        │
-│                                                              │
-│  - button_manager      (GPIO input - buttons)               │
-│  - led_manager         (WS2812B NeoPixel control)           │
-│  - relay_controller    (GPIO output - relay control)        │
-│  - temperature_sensor  (DS18B20 - 1-Wire)                   │
-│  - displayManager      (SSD1306 OLED - I2C)                 │
-└─────────────────────────────────────────────────────────────┘
-```
-
-**Architecture Benefits**:
-- **Clear Separation**: Each layer has specific responsibilities
-- **Testability**: Services can be tested without hardware
-- **Portability**: Drivers isolate hardware dependencies
-- **Maintainability**: Changes in one layer don't affect others
-- **Reusability**: Services layer is hardware-agnostic
-
-## 3. Modules by Layer
-
-### 3.1 Application Layer
-
-**Purpose**: Business logic orchestration and system entry point
-
-#### system_state
-- **Role**: Event coordinator and state machine
-- **State Flow**: CONNECTING → WIFI → MQTT → OPERATIONAL
-- **Interface**: `notifySystemState(event)`, `initializeSystemState()`
-- **Responsibility**: Coordinates all modules, manages task lifecycle
-- **Layer**: Application (Core - Shared across devices)
-
-#### main
-- **Role**: Entry point and system initialization
-- **Interface**: `setup()`, `loop()`
-- **Responsibility**: Bootstraps system_state
-- **Layer**: Application (Device-specific)
+**Platform**: ESP32 family, FreeRTOS, Arduino Framework, PlatformIO monorepo
 
 ---
 
-### 3.2 Services Layer
+## 2. Monorepo Structure
 
+```
+mica-ecosystem/
+├── apps/                    # Individual applications
+│   ├── recirculator/       # App 1: Water pump control
+│   └── gateway/            # App 2: LoRa sensor hub (future)
+│
+├── lib/                     # Shared libraries (PlatformIO standard)
+│   ├── services/           # Business logic (shared)
+│   ├── drivers/            # Hardware abstraction (shared)
+│   └── utils/              # Helper utilities (shared)
+│
+├── include/                 # Global configuration
+│   ├── config.h            # Hardware pins, defines
+│   └── secrets.h           # Credentials (gitignored)
+│
+└── docs/                    # Documentation
+```
+
+**Key principle**: Apps are independent but share code from `lib/` to avoid duplication.
+
+---
+
+## 3. Layered Architecture (4 Layers)
+
+The system follows a **4-layer architecture pattern** for clear separation of concerns:
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                     APPLICATION LAYER                               │
+│  Location: lib/application/ + apps/*/src/main.cpp                   │
+│                                                                      │
+│  - system_state  (Shared: Event Coordinator)                        │
+│  - main.cpp      (Per-app: Entry Point)                             │
+└─────────────────────────────┬───────────────────────────────────────┘
+                              │
+┌─────────────────────────────▼───────────────────────────────────────┐
+│                      SERVICES LAYER                                 │
+│  Location: lib/services/ (SHARED across all apps)                   │
+│                                                                      │
+│  - wifi_connect      (WiFi management)                              │
+│  - wifi_config_mode  (AP + Captive Portal)                          │
+│  - mqtt_handler      (AWS IoT - generic)                            │
+│  - ota_manager       (Firmware updates)                             │
+│  - eeprom_config     (Persistent storage)                           │
+│  - device_id         (Unique device identifier)                     │
+└─────────────────────────────┬───────────────────────────────────────┘
+                              │
+┌─────────────────────────────▼───────────────────────────────────────┐
+│                      DRIVERS LAYER                                  │
+│  Location: lib/drivers/ (SHARED) + apps/*/src/ (SPECIFIC)           │
+│                                                                      │
+│  SHARED (lib/drivers/):                                             │
+│  - button_manager      (GPIO input)                                 │
+│  - led_manager         (WS2812B NeoPixel)                           │
+│                                                                      │
+│  SPECIFIC (apps/recirculator/src/):                                 │
+│  - relay_controller    (GPIO relay)                                 │
+│  - temperature_sensor  (DS18B20 1-Wire)                             │
+│  - displayManager      (SSD1306 OLED I2C)                           │
+└─────────────────────────────┬───────────────────────────────────────┘
+                              │
+┌─────────────────────────────▼───────────────────────────────────────┐
+│                       UTILS LAYER                                   │
+│  Location: lib/utils/ (SHARED helper utilities)                     │
+│                                                                      │
+│  - Log         (Logging with levels)                                │
+│  - UtcClock    (NTP time sync)                                      │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### Global Configuration
+**Location**: `include/` (PlatformIO standard for global headers)
+- `config.h` - Hardware pins, ESP32 variant defines
+- `secrets.h` - AWS credentials, WiFi (gitignored)
+
+---
+
+## 4. Architecture Benefits
+
+### ✅ Code Reuse
+- **Services** (WiFi, MQTT, OTA, storage) shared by all apps
+- **Shared drivers** (buttons, LEDs) reused across apps
+- **Utils** (Log, UtcClock) common to all
+- No code duplication for network/cloud infrastructure
+
+### ✅ Separation of Concerns
+- **Application** (per-app): Coordinates app-specific modules, manages state
+- **Services** (shared): Business logic without hardware access
+- **Drivers** (shared + per-app): Hardware abstraction
+- **Utils** (shared): Helper functions (logging, time)
+
+### ✅ Application Independence
+- Each app has its own `system_state` coordinating its specific modules
+- Recirculator: coordinates relay, temperature sensor, display
+- Gateway (future): will coordinate LoRa, different sensors
+- Apps share infrastructure (WiFi, MQTT) but not business logic
+
+### ✅ Scalability
+- Easy to add new apps (copy `apps/recirculator/` template)
+- New apps automatically get all shared services
+- Device-specific code isolated in app folder
+
+### ✅ Maintainability
+- Fix bug in service → All apps benefit
+- Change driver API → Clear impact analysis
+- Configs in one place (`include/`)
+
+---
+
+## 5. Modules by Layer
+
+### 5.1 Application Layer (DEVICE-SPECIFIC)
+
+**Location**: `apps/*/src/` (each app has its own)
+
+**Why not shared?** Application layer coordinates device-specific modules (relay_controller, temperature_sensor, displayManager) which are unique to each app. Gateway would have its own system_state coordinating LoRa, different sensors, etc.
+
+#### system_state (PER-APP)
+- **Location**: `apps/recirculator/src/system_state.*`, `apps/gateway/src/system_state.*`
+- **Role**: Event coordinator and state machine for the specific application
+- **State Flow**: CONNECTING → WIFI → MQTT → OPERATIONAL
+- **Interface**: `notifySystemState(event)`, `initializeSystemState()`
+- **Responsibility**: Coordinates app-specific modules, manages task lifecycle
+- **Specific to**: Each app (different modules per app)
+
+#### main.cpp (PER-APP)
+- **Location**: `apps/recirculator/src/main.cpp`, `apps/gateway/src/main.cpp`
+- **Role**: Entry point and system initialization
+- **Interface**: `setup()`, `loop()`
+- **Responsibility**: Bootstraps system_state, initializes device-specific modules
+- **Specific to**: Each app
+
+---
+
+### 5.2 Services Layer (ALL SHARED)
+
+**Location**: `lib/services/`  
 **Purpose**: Business services without direct hardware interaction
 
 #### wifi_connect
+- **Location**: `lib/services/wifi_connect/`
 - **Role**: WiFi connection management
 - **Features**: Auto-connect, exponential backoff, EEPROM credentials
 - **Interface**: `initWiFi()`, `isWiFiConnected()`
-- **Layer**: Services (Core - Shared)
+- **Shared by**: All apps
 
 #### wifi_config_mode
+- **Location**: `lib/services/wifi_config_mode/`
 - **Role**: Configuration portal via Access Point
 - **Features**: AP mode + captive portal, credential storage
 - **Trigger**: Long button press (5s)
 - **Interface**: `startConfigMode()`, `isInConfigMode()`
-- **Layer**: Services (Core - Shared)
+- **Shared by**: All apps
 
 #### mqtt_handler
+- **Location**: `lib/services/mqtt_handler/`
 - **Role**: AWS IoT Core communication
 - **Architecture**: Generic with deviceType parameter, FreeRTOS queues
-- **Topics**: `mica/dev/{command|telemetry}/recirculator/{deviceId}/{subject}`
+- **Topics**: `mica/dev/{command|telemetry}/{deviceType}/{deviceId}/{subject}`
 - **Interface**: `mqttPublish()`, `mqttSubscribe()`, `isMqttConnected()`
-- **Layer**: Services (Core - Shared)
+- **Shared by**: All apps (deviceType parameterized)
 
 #### ota_manager
+- **Location**: `lib/services/ota_manager/`
 - **Role**: Over-The-Air firmware updates
 - **Triggers**: MQTT command or HTTP
 - **Interface**: `initOTA()`, `handleOTA()`
-- **Layer**: Services (Core - Shared)
+- **Shared by**: All apps
 
 #### eeprom_config
+- **Location**: `lib/services/eeprom_config/`
 - **Role**: Persistent configuration storage
-- **Stores**: WiFi credentials, safety limits (max temp, max time)
-- **Never Stores**: Runtime state (relay ON/OFF - safety by design)
-- **Interface**: `saveMaxTemperature()`, `loadMaxTime()`, etc.
-- **Layer**: Services (Core - Shared)
+- **Stores**: WiFi credentials, device-specific configs
+- **Never Stores**: Runtime state (safety by design)
+- **Interface**: `saveConfig()`, `loadConfig()`, key-value operations
+- **Shared by**: All apps
 
 #### device_id
+- **Location**: `lib/services/device_id/`
 - **Role**: Unique device identifier generation
 - **Source**: ESP32 MAC address
 - **Interface**: `getDeviceId()`, `initDeviceId()`
-- **Layer**: Services (Core - Shared)
+- **Shared by**: All apps
 
 ---
 
-### 3.3 Drivers Layer
+### 5.3 Drivers Layer
 
 **Purpose**: Hardware abstraction and GPIO/peripheral interaction
 
-#### button_manager
+#### Shared Drivers (lib/drivers/)
+
+##### button_manager
+- **Location**: `lib/drivers/button_manager/`
 - **Role**: Button input handler (GPIO interrupt-based)
 - **Hardware**: GPIO buttons with debouncing
 - **Events**: `SHORT_PRESS`, `LONG_PRESS` (5s threshold)
 - **Interface**: `initButtonManager()` - Publishes events to system_state
 - **Note**: Generic, no device-specific logic
-- **Layer**: Drivers (Core - Shared)
+- **Shared by**: All apps (recirculator, gateway)
 
-#### led_manager
+##### led_manager
+- **Location**: `lib/drivers/led_manager/`
 - **Role**: Visual status indicator
 - **Hardware**: WS2812B NeoPixel (addressable RGB LED)
 - **States**: Colors/patterns for WiFi, MQTT, errors, config mode
 - **Interface**: `setLEDColor()`, `setLEDPattern()`
-- **Layer**: Drivers (Core - Shared)
+- **Shared by**: All apps
 
-#### relay_controller
+---
+
+#### Device-Specific Drivers (apps/recirculator/src/drivers/)
+
+##### relay_controller
+- **Location**: `apps/recirculator/src/drivers/relay_controller.*`
 - **Role**: Relay control with safety monitoring
 - **Hardware**: GPIO output to relay module
 - **Features**: ON/OFF control, timeout timer, temperature threshold
 - **Safety**: Monitoring loop (1s), auto-shutoff on limits
 - **Interface**: `activateRelay()`, `deactivateRelay()`, `isRelayActive()`
-- **Layer**: Drivers (Device-specific - Recirculator)
+- **Specific to**: Recirculator only
 
-#### temperature_sensor
+##### temperature_sensor
+- **Location**: `apps/recirculator/src/drivers/temperature_sensor.*`
 - **Role**: Temperature measurement and publishing
 - **Hardware**: DS18B20 digital sensor (1-Wire protocol)
 - **Polling**: Every 5 seconds
 - **Error Handling**: -127°C indicates sensor error, publishes error to MQTT
 - **Interface**: `initTemperatureSensor()`, `getLatestTemperature()`
-- **Layer**: Drivers (Device-specific - Recirculator)
+- **Specific to**: Recirculator only
 
-#### displayManager
+##### displayManager
+- **Location**: `apps/recirculator/src/drivers/displayManager.*`
 - **Role**: Local visual feedback display
 - **Hardware**: SSD1306 OLED 128x64 pixels (I2C)
 - **Content**: Temperature, relay state, timers, system status
 - **Interface**: `initDisplay()`, `updateDisplay()`
-- **Layer**: Drivers (Device-specific - Recirculator)
+- **Specific to**: Recirculator only
 
 ---
 
-### 3.4 Module Classification Summary
+### 5.4 Utils Layer (lib/utils/)
 
-| Module | Layer | Shared/Device | Hardware Access |
-|--------|-------|---------------|-----------------|
-| system_state | Application | Shared (Core) | No |
-| main | Application | Device-specific | No |
-| wifi_connect | Services | Shared (Core) | No (uses ESP32 WiFi API) |
-| wifi_config_mode | Services | Shared (Core) | No (uses ESP32 WiFi API) |
-| mqtt_handler | Services | Shared (Core) | No (uses WiFiClientSecure) |
-| ota_manager | Services | Shared (Core) | No (uses HTTPUpdate) |
-| eeprom_config | Services | Shared (Core) | No (uses Preferences API) |
-| device_id | Services | Shared (Core) | No (reads MAC from ESP32) |
-| button_manager | Drivers | Shared (Core) | Yes (GPIO input) |
-| led_manager | Drivers | Shared (Core) | Yes (GPIO output - WS2812B) |
-| relay_controller | Drivers | Device-specific | Yes (GPIO output) |
-| temperature_sensor | Drivers | Device-specific | Yes (1-Wire GPIO) |
-| displayManager | Drivers | Device-specific | Yes (I2C) |
+#### Log
+- **Location**: `lib/utils/Log/`
+- **Role**: Logging with severity levels
+- **Levels**: DEBUG, INFO, WARN, ERROR
+- **Interface**: `Log::info()`, `Log::error()`, etc.
+- **Shared by**: All apps
 
-## 4. MQTT Topics
+#### UtcClock
+- **Location**: `lib/utils/UtcClock/`
+- **Role**: Time management and NTP sync
+- **Features**: UTC time, timezone handling
+- **Interface**: `getUtcTime()`, `syncNTP()`
+- **Shared by**: All apps
+
+---
+
+### 5.5 Global Configuration (include/)
+
+#### config.h
+- **Location**: `include/config.h`
+- **Content**: GPIO pins, ESP32 variant defines, hardware configuration
+- **Example**: `#define BUTTON_PIN 9`, `#define RELAY_PIN 8`
+- **Shared by**: All apps
+
+#### secrets.h
+- **Location**: `include/secrets.h` (gitignored)
+- **Content**: AWS IoT credentials, WiFi defaults, API keys
+- **Security**: Never committed to git
+- **Template**: `docs/secrets.h.template`
+- **Shared by**: All apps
+
+---
+
+### 5.6 Module Classification Summary
+
+| Module | Layer | Location | Shared | Hardware |
+|--------|-------|----------|--------|----------|
+| system_state | Application | apps/*/src/ | ❌ No | ❌ No |
+| main.cpp | Application | apps/*/src/ | ❌ No | ❌ No |
+| wifi_connect | Services | lib/services/ | ✅ Yes | ❌ No |
+| wifi_config_mode | Services | lib/services/ | ✅ Yes | ❌ No |
+| mqtt_handler | Services | lib/services/ | ✅ Yes | ❌ No |
+| ota_manager | Services | lib/services/ | ✅ Yes | ❌ No |
+| eeprom_config | Services | lib/services/ | ✅ Yes | ❌ No |
+| device_id | Services | lib/services/ | ✅ Yes | ❌ No |
+| button_manager | Drivers | lib/drivers/ | ✅ Yes | ✅ GPIO |
+| led_manager | Drivers | lib/drivers/ | ✅ Yes | ✅ GPIO |
+| relay_controller | Drivers | apps/recirculator/src/drivers/ | ❌ No | ✅ GPIO |
+| temperature_sensor | Drivers | apps/recirculator/src/drivers/ | ❌ No | ✅ 1-Wire |
+| displayManager | Drivers | apps/recirculator/src/drivers/ | ❌ No | ✅ I2C |
+| Log | Utils | lib/utils/ | ✅ Yes | ❌ No |
+| UtcClock | Utils | lib/utils/ | ✅ Yes | ❌ No |
+| config.h | Config | include/ | ✅ Yes | N/A |
+| secrets.h | Config | include/ | ✅ Yes | N/A |
+
+---
+
+## 6. MQTT Topics (Recirculator App)
 
 **Pattern**: `mica/dev/{direction}/{deviceType}/{deviceId}/{subject}`
 
@@ -201,7 +341,9 @@ The system follows a **3-layer architecture pattern** for clear separation of co
 ### Status (Publish)
 - `mica/dev/status/recirculator/{deviceId}/healthcheck` - Every 60s
 
-## 5. Event Flow
+---
+
+## 7. Event Flow
 
 ```
 Input → Module → Event → System State → Handler → Action
@@ -209,7 +351,9 @@ Input → Module → Event → System State → Handler → Action
 
 **Example**: Button → `SHORT_PRESS` → System State → `activateRelay()` → GPIO ON + MQTT publish
 
-## 6. Concurrency
+---
+
+## 8. Concurrency
 
 ### FreeRTOS Tasks
 - System State (pri 3), Display (pri 3)
@@ -220,15 +364,20 @@ Input → Module → Event → System State → Handler → Action
 - Mutexes: state, temperature, EEPROM
 - Event bus via task notifications
 
-## 7. Configuration
+---
 
-**Static** (config.h): GPIO pins, hardware variants  
-**Dynamic** (EEPROM): WiFi credentials, max temp, max time  
+## 9. Configuration
+
+**Static** (`include/config.h`): GPIO pins, hardware variants, ESP32 defines  
+**Secrets** (`include/secrets.h`): AWS IoT credentials, WiFi defaults (gitignored)  
+**Dynamic** (EEPROM): WiFi credentials, device-specific configs  
 **Remote** (MQTT): Real-time config updates
 
-**Defaults**: Max temp 30°C, Max time 120s, Device ID = MAC
+**Recirculator defaults**: Max temp 30°C, Max time 120s, Device ID = MAC
 
-## 8. Error Handling
+---
+
+## 10. Error Handling
 
 - WiFi/MQTT: Auto-reconnect with backoff
 - Sensor -127°C: Continue, publish error
@@ -236,5 +385,92 @@ Input → Module → Event → System State → Handler → Action
 
 ---
 
+## 11. PlatformIO Configuration
+
+Each app has its own `platformio.ini`:
+
+**Example**: `apps/recirculator/platformio.ini`
+```ini
+[env:esp32_c3_recirculator]
+platform = espressif32
+board = seeed_xiao_esp32c3
+framework = arduino
+
+# PlatformIO automatically finds libraries in:
+# - lib/ (workspace root - shared libraries)
+# - apps/recirculator/lib/ (app-local libraries, if any)
+
+# Include global headers
+build_flags = 
+    -I../../include
+
+lib_deps = 
+    adafruit/Adafruit NeoPixel
+    knolleary/PubSubClient
+    bblanchon/ArduinoJson
+    # ... external dependencies
+```
+
+**Key Points**:
+- No need for `lib_extra_dirs` - PlatformIO finds `lib/` automatically
+- `build_flags` includes `include/` for global configs
+- Each app compiles independently
+- All apps share code from `lib/`
+
+---
+
+## 12. Adding New Application
+
+To add a new app (e.g., `gateway`):
+
+1. **Create app folder**:
+   ```bash
+   mkdir -p apps/gateway/src
+   ```
+
+2. **Create platformio.ini**:
+   ```bash
+   cp apps/recirculator/platformio.ini apps/gateway/platformio.ini
+   # Edit for gateway-specific board/settings
+   ```
+
+3. **Create main.cpp**:
+   ```cpp
+   // apps/gateway/src/main.cpp
+   #include "system_state.h"  // From apps/gateway/src/ (gateway's own)
+   #include "wifi_connect.h"  // From lib/services/ (shared)
+   #include "lora_manager.h"  // From apps/gateway/src/ (gateway-specific)
+   // ... automatically uses shared services
+   
+   void setup() {
+       initializeSystemState();  // Gateway's system_state
+       // Gateway-specific initialization
+   }
+   ```
+
+4. **Create gateway's system_state**:
+   ```bash
+   # Copy and adapt from recirculator as template
+   cp apps/recirculator/src/system_state.* apps/gateway/src/
+   # Edit to coordinate gateway-specific modules (LoRa, etc.)
+   ```
+
+4. **Add device-specific drivers**:
+   ```bash
+   # apps/gateway/src/lora_manager.cpp/h
+   # Gateway-specific hardware
+   ```
+
+5. **Compile**:
+   ```bash
+   cd apps/gateway
+   platformio run
+   ```
+
+All shared services (WiFi, MQTT, OTA, etc.) are automatically available!
+
+---
+
 **Architecture**: gaesca04 (Computer Engineer)  
-**Version**: 2.0 | 28 Nov 2025
+**Type**: PlatformIO Monorepo  
+**Version**: 3.0 | 28 Nov 2025

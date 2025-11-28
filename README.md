@@ -1,76 +1,103 @@
 # MICA Ecosystem - IoT Devices Monorepo
 
-Sistema integrado de dispositivos IoT MICA con arquitectura monorepo diseñada para máxima reutilización de código y mantenibilidad.
+> **Architecture by**: gaesca04 (computer engineer, software architecture expert)
 
-## 🎓 Arquitectura
+Sistema integrado de dispositivos IoT MICA con arquitectura monorepo diseñada para **máxima reutilización de código** entre múltiples aplicaciones.
 
-Diseñado por: **gaesca04** (ingeniero informático, experto en arquitectura de software y monorepos)
+---
 
-### Patrón de 3 Capas
+## 🎯 Concepto Clave
+
+**Múltiples aplicaciones que comparten servicios y drivers comunes**
+
+- `apps/` = Proyectos independientes (cada uno con su `platformio.ini`)
+- `lib/` = Librerías compartidas (PlatformIO busca aquí automáticamente)
+- `include/` = Configuración global (hardware, credenciales)
+
+---
+
+## 🎓 Arquitectura en 4 Capas
+
+Diseñado por: **gaesca04** (ingeniero informático, experto en monorepos)
 
 ```
-┌─────────────────────────────────────┐
-│     APPLICATION LAYER               │
-│  (Business Logic, Coordination)     │
-├─────────────────────────────────────┤
-│     SERVICES LAYER                  │
-│  (WiFi, MQTT, OTA, Storage)         │
-├─────────────────────────────────────┤
-│     DRIVERS LAYER                   │
-│  (GPIO, I2C, 1-Wire, Hardware)      │
-└─────────────────────────────────────┘
+┌─────────────────────────────────────────────┐
+│     APPLICATION LAYER                       │
+│  (Coordination, State Management)           │
+│  Location: lib/application/ + apps/*/main   │
+├─────────────────────────────────────────────┤
+│     SERVICES LAYER                          │
+│  (WiFi, MQTT, OTA, Storage)                 │
+│  Location: lib/services/                    │
+├─────────────────────────────────────────────┤
+│     DRIVERS LAYER                           │
+│  Shared: lib/drivers/                       │
+│  Specific: apps/*/src/                      │
+│  (GPIO, I2C, 1-Wire, Hardware)              │
+├─────────────────────────────────────────────┤
+│     UTILS LAYER                             │
+│  (Logging, Time)                            │
+│  Location: lib/utils/                       │
+└─────────────────────────────────────────────┘
 ```
 
-**Principios de Diseño:**
-- **Application Layer**: Lógica de negocio, coordinación de eventos, entry point
-- **Services Layer**: Funcionalidad sin acceso directo a hardware (networking, storage, OTA)
-- **Drivers Layer**: Abstracción de hardware, interacción GPIO/I2C/1-Wire
+---
 
-## 📁 Estructura del Monorepo
+## 📁 Estructura del Proyecto
 
 ```
 mica-ecosystem/
-├── platformio.ini           # ⚙️ Config PlatformIO raíz (define entornos)
-├── src/                     # 🔗 Symlink -> apps/recirculator/src (PlatformIO compatibility)
-├── apps/                    # 📱 Aplicaciones específicas por dispositivo
-│   └── recirculator/        # Control de bomba de recirculación
+│
+├── apps/                        # 📱 Aplicaciones independientes
+│   ├── recirculator/            # APP 1: Control bomba recirculación
+│   │   ├── platformio.ini       # Config específico
+│   │   └── src/
+│   │       ├── main.cpp         # Entry point
+│   │       ├── relay_controller.*       # Driver específico
+│   │       ├── temperature_sensor.*     # Driver específico
+│   │       └── displayManager.*         # Driver específico
+│   │
+│   └── gateway/                 # APP 2: Hub sensores LoRa (futuro)
+│       ├── platformio.ini
 │       └── src/
-│           ├── application/ # Lógica de negocio (main, system_state)
-│           ├── services/    # WiFi, MQTT, OTA, EEPROM, device_id
-│           ├── drivers/     # Hardware (relay, temp sensor, display, buttons, LEDs)
-│           ├── config.h     # Configuración hardware específica
-│           └── secrets.h    # Credenciales WiFi/MQTT (gitignored)
-├── lib/                     # 📚 Librerías personalizadas compartidas
-│   ├── Log/                 # Sistema de logging
-│   └── UtcClock/            # Gestión de tiempo UTC
-├── libs/
-│   └── core/                # 🔮 Módulos compartidos (futuro - migración pendiente)
-│       ├── application/     # system_state (coordinador de eventos)
-│       ├── services/        # WiFi, MQTT, OTA, EEPROM
-│       ├── drivers/         # button_manager, led_manager
-│       └── utils/           # Utilidades compartidas
-└── docs/                    # 📖 Documentación del ecosistema
+│           └── main.cpp
+│
+├── lib/                         # 📚 Librerías COMPARTIDAS
+│   │
+│   ├── application/             # CAPA: Coordinación
+│   │   └── system_state/        # Event coordinator, state machine
+│   │
+│   ├── services/                # CAPA: Lógica de negocio
+│   │   ├── wifi_connect/        # WiFi connection management
+│   │   ├── wifi_config_mode/    # AP mode + captive portal
+│   │   ├── mqtt_handler/        # AWS IoT MQTT (generic)
+│   │   ├── ota_manager/         # Firmware updates
+│   │   ├── eeprom_config/       # Persistent storage
+│   │   └── device_id/           # Unique device ID
+│   │
+│   ├── drivers/                 # CAPA: Drivers compartidos
+│   │   ├── button_manager/      # GPIO button handler
+│   │   └── led_manager/         # WS2812B NeoPixel
+│   │
+│   └── utils/                   # CAPA: Utilidades
+│       ├── Log/                 # Logging system
+│       └── UtcClock/            # Time management
+│
+├── include/                     # ⚙️ Configuración GLOBAL
+│   ├── config.h                 # Hardware pins, ESP32 defines
+│   └── secrets.h                # Credentials (gitignored)
+│
+├── docs/                        # 📖 Documentación
+│   ├── architecture.md          # Arquitectura detallada
+│   ├── ARCHITECTURE-PROPOSAL.md # Propuesta aprobada
+│   ├── ISSUES.md                # Issues y progreso
+│   └── REFACTORING-PLAN.md      # Plan de migración
+│
+├── platformio.ini               # Config raíz (opcional/legacy)
+└── README.md                    # Este archivo
 ```
 
-### Estructura PlatformIO
-
-El proyecto usa **un único `platformio.ini`** en la raíz con **múltiples entornos**:
-
-```ini
-[platformio]
-default_envs = esp32_c3_recirculator
-
-[env:esp32_c3_recirculator]
-platform = espressif32
-board = seeed_xiao_esp32c3
-# El código está en apps/recirculator/src/
-# Accesible mediante symlink src -> apps/recirculator/src
-
-[env:esp32_c3_gateway]  # Futuro
-# Usará apps/gateway/src/
-```
-
-**Ventaja del symlink**: PlatformIO espera código en `src/`, el symlink apunta a `apps/recirculator/src/` manteniendo la organización del monorepo.
+---
 
 ## 🌟 Dispositivos
 
@@ -101,7 +128,64 @@ Hub de sensores con transmisión LoRa
 
 ## 🛠️ Desarrollo
 
-### Compilar Firmware
+### Compilar y Subir Firmware
+
+**Recirculator**:
+```bash
+cd apps/recirculator
+~/.platformio/penv/bin/platformio run           # Compilar
+~/.platformio/penv/bin/platformio run --target upload  # Subir
+~/.platformio/penv/bin/platformio device monitor       # Monitor serial
+```
+
+**Gateway** (futuro):
+```bash
+cd apps/gateway
+~/.platformio/penv/bin/platformio run
+```
+
+### Estructura de Cada App
+
+Cada app en `apps/*/` es independiente:
+- Tiene su propio `platformio.ini`
+- Define su placa y configuración
+- Usa librerías de `lib/` automáticamente (PlatformIO busca en workspace root)
+- Accede a configs globales en `include/`
+
+### Añadir Nueva Aplicación
+
+1. **Crear directorio**:
+   ```bash
+   mkdir -p apps/my_device/src
+   ```
+
+2. **Copiar platformio.ini template**:
+   ```bash
+   cp apps/recirculator/platformio.ini apps/my_device/
+   # Editar board, settings específicos
+   ```
+
+3. **Crear main.cpp**:
+   ```cpp
+   // apps/my_device/src/main.cpp
+   #include "system_state.h"  // Automáticamente de lib/application/
+   #include "wifi_connect.h"  // Automáticamente de lib/services/
+   
+   void setup() {
+       initializeSystemState();
+       // Device-specific initialization
+   }
+   ```
+
+4. **Compilar**:
+   ```bash
+   cd apps/my_device
+   ~/.platformio/penv/bin/platformio run
+   ```
+
+¡Todos los servicios compartidos están disponibles automáticamente!
+
+---
 
 **Compilar el recirculator:**
 ```bash

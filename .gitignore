@@ -3,7 +3,7 @@
 .vscode/
 
 # Secrets - NEVER commit credentials
-libs/core/secrets.h
+include/secrets.h
 **/secrets.h
 
 # IDE and OS
