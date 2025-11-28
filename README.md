@@ -88,10 +88,12 @@ mica-ecosystem/
 │   └── secrets.h                # Credentials (gitignored)
 │
 ├── docs/                        # 📖 Documentación
-│   ├── architecture.md          # Arquitectura detallada
-│   ├── ARCHITECTURE-PROPOSAL.md # Propuesta aprobada
-│   ├── ISSUES.md                # Issues y progreso
-│   └── REFACTORING-PLAN.md      # Plan de migración
+│   ├── architecture.md          # System architecture
+│   ├── API.md                   # Shared modules API reference
+│   ├── DEVELOPMENT.md           # Developer guide
+│   ├── hardware.md              # Hardware specifications
+│   ├── CHANGELOG.md             # Version history
+│   └── project/                 # Project management docs
 │
 ├── platformio.ini               # Config raíz (opcional/legacy)
 └── README.md                    # Este archivo
@@ -271,24 +273,28 @@ O actualiza `default_envs` en `platformio.ini` y compila con `-e <entorno>`.
   platformio run -e esp32_c3_gateway
   ```
 
-## 📚 Documentación
+## 📚 Documentation
 
-### Documentación Técnica
+### Technical Documentation
+- **[Architecture](./docs/architecture.md)** - Complete system architecture (4 layers, FreeRTOS, MQTT)
+- **[Hardware Specs](./docs/hardware.md)** - Hardware specifications and pinout
+- **[API Reference](./docs/API.md)** - Shared modules documentation
+- **[Changelog](./docs/CHANGELOG.md)** - Version history and changes
 
-- **[docs/architecture.md](./docs/architecture.md)** - Arquitectura del sistema recirculator (3 capas, FreeRTOS, MQTT)
-- **[docs/hardware.md](./docs/hardware.md)** - Especificaciones de hardware y pinout
-- **[docs/ISSUES.md](./docs/ISSUES.md)** - Tareas y planificación del proyecto
-- **[docs/REFACTORING-PLAN.md](./docs/REFACTORING-PLAN.md)** - Plan de migración al monorepo
-- **[docs/CHANGELOG-2025-11-28.md](./docs/CHANGELOG-2025-11-28.md)** - Historial de cambios
-
-### Guías de Desarrollo
-
-- **[.github/copilot-instructions.md](./.github/copilot-instructions.md)** - Estándares de código, workflow Git, testing
+### Development Guides
+- **[Development Guide](./docs/DEVELOPMENT.md)** - Monorepo development, adding apps, modifying shared modules
+- **[Copilot Instructions](./.github/copilot-instructions.md)** - Code standards, Git workflow, testing
   - Naming conventions (camelCase, snake_case, UPPER_CASE)
-  - Arquitectura de 3 capas (Application → Services → Drivers)
-  - Git commit format y branching strategy
+  - Architecture principles by gaesca04
+  - Git commit format and branching strategy
   - Testing checklist
-  - Principios de arquitectura por gaesca04
+
+### Application Guides
+- **[Recirculator README](./apps/recirculator/README.md)** - Recirculator installation, usage, configuration
+
+### Project Management
+- **[Issues](./docs/project/ISSUES.md)** - Project tasks and planning
+- **[Refactoring Plan](./docs/project/REFACTORING-PLAN.md)** - Monorepo migration plan
 
 ## 🏆 Reconocimiento
 
