@@ -1,309 +1,148 @@
-# MICA Ecosystem - IoT Devices Monorepo
+# MICA Ecosystem - IoT Monorepo
 
-> **Architecture by**: gaesca04 (computer engineer, software architecture expert)
+> **Architecture by**: gaesca04 (Computer Engineer)
 
-Sistema integrado de dispositivos IoT MICA con arquitectura monorepo diseñada para **máxima reutilización de código** entre múltiples aplicaciones.
-
----
-
-## 🎯 Concepto Clave
-
-**Múltiples aplicaciones que comparten servicios y drivers comunes**
-
-- `apps/` = Proyectos independientes (cada uno con su `platformio.ini`)
-- `lib/` = Librerías compartidas (PlatformIO busca aquí automáticamente)
-- `include/` = Configuración global (hardware, credenciales)
+IoT monorepo for ESP32 devices sharing common services (WiFi, MQTT, OTA) and drivers (buttons, LEDs).
 
 ---
 
-## 🎓 Arquitectura en 4 Capas
-
-Diseñado por: **gaesca04** (ingeniero informático, experto en monorepos)
-
-```
-┌─────────────────────────────────────────────┐
-│     APPLICATION LAYER                       │
-│  (Coordination, State Management)           │
-│  Location: lib/application/ + apps/*/main   │
-├─────────────────────────────────────────────┤
-│     SERVICES LAYER                          │
-│  (WiFi, MQTT, OTA, Storage)                 │
-│  Location: lib/services/                    │
-├─────────────────────────────────────────────┤
-│     DRIVERS LAYER                           │
-│  Shared: lib/drivers/                       │
-│  Specific: apps/*/src/                      │
-│  (GPIO, I2C, 1-Wire, Hardware)              │
-├─────────────────────────────────────────────┤
-│     UTILS LAYER                             │
-│  (Logging, Time)                            │
-│  Location: lib/utils/                       │
-└─────────────────────────────────────────────┘
-```
-
----
-
-## 📁 Estructura del Proyecto
+## 🎯 Structure
 
 ```
 mica-ecosystem/
+├── apps/                    # Independent applications
+│   ├── recirculator/        # Water pump controller (ESP32-C3)
+│   └── gateway/             # LoRa sensor hub (future)
 │
-├── apps/                        # 📱 Aplicaciones independientes
-│   ├── recirculator/            # APP 1: Control bomba recirculación
-│   │   ├── platformio.ini       # Config específico
-│   │   └── src/
-│   │       ├── main.cpp         # Entry point
-│   │       ├── relay_controller.*       # Driver específico
-│   │       ├── temperature_sensor.*     # Driver específico
-│   │       └── displayManager.*         # Driver específico
-│   │
-│   └── gateway/                 # APP 2: Hub sensores LoRa (futuro)
-│       ├── platformio.ini
-│       └── src/
-│           └── main.cpp
+├── lib/                     # Shared libraries (auto-discovered by PlatformIO)
+│   ├── wifi_connect/        # WiFi management
+│   ├── mqtt_handler/        # AWS IoT MQTT
+│   ├── ota_manager/         # OTA updates
+│   ├── button_manager/      # Generic button handler
+│   ├── led_manager/         # Status LED (WS2812B)
+│   └── [5 more modules...]  # See docs/architecture.md
 │
-├── lib/                         # 📚 Librerías COMPARTIDAS
-│   │
-│   ├── application/             # CAPA: Coordinación
-│   │   └── system_state/        # Event coordinator, state machine
-│   │
-│   ├── services/                # CAPA: Lógica de negocio
-│   │   ├── wifi_connect/        # WiFi connection management
-│   │   ├── wifi_config_mode/    # AP mode + captive portal
-│   │   ├── mqtt_handler/        # AWS IoT MQTT (generic)
-│   │   ├── ota_manager/         # Firmware updates
-│   │   ├── eeprom_config/       # Persistent storage
-│   │   └── device_id/           # Unique device ID
-│   │
-│   ├── drivers/                 # CAPA: Drivers compartidos
-│   │   ├── button_manager/      # GPIO button handler
-│   │   └── led_manager/         # WS2812B NeoPixel
-│   │
-│   └── utils/                   # CAPA: Utilidades
-│       ├── Log/                 # Logging system
-│       └── UtcClock/            # Time management
-│
-├── include/                     # ⚙️ Configuración GLOBAL
-│   ├── config.h                 # Hardware pins, ESP32 defines
-│   └── secrets.h                # Credentials (gitignored)
-│
-├── docs/                        # 📖 Documentación
-│   ├── architecture.md          # System architecture
-│   ├── API.md                   # Shared modules API reference
-│   ├── DEVELOPMENT.md           # Developer guide
-│   ├── hardware.md              # Hardware specifications
-│   ├── CHANGELOG.md             # Version history
-│   └── project/                 # Project management docs
-│
-├── platformio.ini               # Config raíz (opcional/legacy)
-└── README.md                    # Este archivo
+└── include/                 # Global configuration
+    ├── config.h             # Hardware pins
+    └── secrets.h            # Credentials (gitignored)
 ```
+
+**Key Principle**: Apps are independent but share code from `lib/` to avoid duplication.
 
 ---
 
-## 🌟 Dispositivos
+## 🚀 Quick Start
 
-### Recirculator (Producción ✅)
-Control inteligente de bomba de recirculación de agua con:
-- **Hardware**: ESP32-C3, Relay, DS18B20 (temperatura), OLED SSD1306
-- **Conectividad**: WiFi, MQTT (AWS IoT Core)
-- **Características**:
-  - Control relay con timeouts configurables
-  - Monitoreo de temperatura en tiempo real
-  - Telemetría a AWS IoT vía MQTT
-  - Display local OLED
-  - Config mode (captive portal)
-  - OTA updates
+### Compile & Upload
 
-### Gateway (Planificado 🚧)
-Hub de sensores con transmisión LoRa
-- Reutilizará: WiFi, MQTT, OTA, button_manager, led_manager
-- Específico: LoRa driver, sensor aggregation
-
-## 🚀 Ventajas del Monorepo
-
-✅ **Cero duplicación**: Un solo `mqtt_handler.cpp` para todos los dispositivos  
-✅ **Mantenimiento centralizado**: Bug fix en WiFi → afecta todos los dispositivos  
-✅ **Escalable**: Añadir nuevo dispositivo = reutilizar 80% del código  
-✅ **Consistencia**: Misma arquitectura, mismo estilo, mismos estándares  
-✅ **Testing compartido**: Validar una vez, usar en todos lados
-
-## 🛠️ Desarrollo
-
-### Compilar y Subir Firmware
-
-**Recirculator**:
+**Recirculator (ESP32-C3)**:
 ```bash
 cd apps/recirculator
-~/.platformio/penv/bin/platformio run           # Compilar
-~/.platformio/penv/bin/platformio run --target upload  # Subir
-~/.platformio/penv/bin/platformio device monitor       # Monitor serial
+~/.platformio/penv/bin/platformio run                    # Compile
+~/.platformio/penv/bin/platformio run --target upload    # Flash device
+~/.platformio/penv/bin/platformio device monitor         # Serial monitor
 ```
 
-**Gateway** (futuro):
+**Clean build**:
 ```bash
-cd apps/gateway
-~/.platformio/penv/bin/platformio run
+~/.platformio/penv/bin/platformio run --target clean
 ```
 
-### Estructura de Cada App
+### Configuration
 
-Cada app en `apps/*/` es independiente:
-- Tiene su propio `platformio.ini`
-- Define su placa y configuración
-- Usa librerías de `lib/` automáticamente (PlatformIO busca en workspace root)
-- Accede a configs globales en `include/`
+1. **Hardware pins**: Edit `include/config.h`
+2. **Credentials**: Copy `include/secrets.h.template` to `include/secrets.h` and add:
+   - AWS IoT certificates
+   - WiFi default credentials (optional)
 
-### Añadir Nueva Aplicación
+---
 
-1. **Crear directorio**:
+## 📱 Devices
+
+### Recirculator (Production ✅)
+Water recirculation pump controller with temperature monitoring.
+
+**Features**:
+- Relay control with safety timeouts
+- Real-time temperature monitoring (DS18B20)
+- MQTT telemetry to AWS IoT
+- Local OLED display
+- WiFi config mode (captive portal)
+- OTA firmware updates
+
+**Hardware**: ESP32-C3, Relay, DS18B20, SSD1306 OLED  
+**Docs**: [apps/recirculator/README.md](./apps/recirculator/README.md)
+
+### Gateway (Planned 🚧)
+LoRa sensor hub reusing 80% of recirculator's code.
+
+---
+
+## 📚 Documentation
+
+| Document | Purpose |
+|----------|---------|
+| [docs/architecture.md](./docs/architecture.md) | Complete system architecture (4 layers, modules, MQTT) |
+| [docs/hardware.md](./docs/hardware.md) | Hardware specifications and pinout |
+| [docs/CHANGELOG.md](./docs/CHANGELOG.md) | Version history |
+| [.github/copilot-instructions.md](./.github/copilot-instructions.md) | Code standards, Git workflow, naming conventions |
+| [apps/recirculator/README.md](./apps/recirculator/README.md) | Recirculator usage guide |
+| [docs/project/ISSUES.md](./docs/project/ISSUES.md) | Project tasks |
+
+---
+
+## 🛠️ Development
+
+### Adding New Application
+
+1. **Create structure**:
    ```bash
    mkdir -p apps/my_device/src
    ```
 
-2. **Copiar platformio.ini template**:
+2. **Copy template**:
    ```bash
    cp apps/recirculator/platformio.ini apps/my_device/
-   # Editar board, settings específicos
+   # Edit board and settings
    ```
 
-3. **Crear main.cpp**:
+3. **Create main.cpp**:
    ```cpp
-   // apps/my_device/src/main.cpp
-   #include "system_state.h"  // Automáticamente de lib/application/
-   #include "wifi_connect.h"  // Automáticamente de lib/services/
+   #include "wifi_connect.h"  // From lib/ (shared)
+   #include "mqtt_handler.h"  // From lib/ (shared)
    
    void setup() {
-       initializeSystemState();
-       // Device-specific initialization
+       initWiFi();
+       initializeMQTTHandler("my_device", getDeviceId());
+       // Device-specific code...
    }
    ```
 
-4. **Compilar**:
+4. **Compile**:
    ```bash
    cd apps/my_device
    ~/.platformio/penv/bin/platformio run
    ```
 
-¡Todos los servicios compartidos están disponibles automáticamente!
+All shared services (WiFi, MQTT, OTA) are automatically available!
 
----
+### Modifying Shared Module
 
-**Compilar el recirculator:**
+⚠️ **Changes in `lib/` affect ALL apps** - Test thoroughly:
 ```bash
-# Desde la raíz del monorepo
-~/.platformio/penv/bin/platformio run -e esp32_c3_recirculator
-
-# O simplemente (usa el entorno por defecto)
+# Compile all apps to verify no breakage
 ~/.platformio/penv/bin/platformio run
 ```
 
-**Flashear a dispositivo:**
-```bash
-~/.platformio/penv/bin/platformio run -e esp32_c3_recirculator --target upload
-```
-
-**Monitor serial:**
-```bash
-~/.platformio/penv/bin/platformio device monitor
-```
-
-**Limpiar build:**
-```bash
-~/.platformio/penv/bin/platformio run --target clean
-```
-
-### Cambiar Entre Aplicaciones
-
-Para trabajar en diferentes dispositivos, cambia el symlink `src`:
-
-```bash
-# Trabajar en recirculator (actual)
-ln -sfn apps/recirculator/src src
-
-# Trabajar en gateway (futuro)
-ln -sfn apps/gateway/src src
-```
-
-O actualiza `default_envs` en `platformio.ini` y compila con `-e <entorno>`.
-
-### Añadir Nueva Aplicación
-
-1. **Crear estructura:**
-   ```bash
-   mkdir -p apps/nuevo-dispositivo/src/{application,services,drivers}
-   ```
-
-2. **Copiar archivos base:**
-   ```bash
-   cp apps/recirculator/src/config.h apps/nuevo-dispositivo/src/
-   cp apps/recirculator/src/secrets.h apps/nuevo-dispositivo/src/
-   ```
-
-3. **Añadir entorno en `platformio.ini`:**
-   ```ini
-   [env:nuevo_dispositivo]
-   platform = espressif32
-   board = <tu_board>
-   framework = arduino
-   build_flags = 
-       -I src
-       -I src/application
-       -I src/services  
-       -I src/drivers
-   lib_extra_dirs = libs/core
-   ```
-
-4. **Cambiar symlink y compilar:**
-   ```bash
-   ln -sfn apps/nuevo-dispositivo/src src
-   platformio run -e nuevo_dispositivo
-   ```
-
-### Modificar Módulo Compartido
-
-⚠️ **Cuidado**: Cambios en `lib/` o `libs/core/` afectan **todos los dispositivos**
-- Mantener retrocompatibilidad
-- Usar dependency injection (parámetros, callbacks)
-- Hacer device-agnostic
-- Testing exhaustivo antes de commitear
-- Compilar **todos** los entornos para verificar:
-  ```bash
-  platformio run -e esp32_c3_recirculator
-  platformio run -e esp32_c3_gateway
-  ```
-
-## 📚 Documentation
-
-### Technical Documentation
-- **[Architecture](./docs/architecture.md)** - Complete system architecture (4 layers, FreeRTOS, MQTT)
-- **[Hardware Specs](./docs/hardware.md)** - Hardware specifications and pinout
-- **[API Reference](./docs/API.md)** - Shared modules documentation
-- **[Changelog](./docs/CHANGELOG.md)** - Version history and changes
-
-### Development Guides
-- **[Development Guide](./docs/DEVELOPMENT.md)** - Monorepo development, adding apps, modifying shared modules
-- **[Copilot Instructions](./.github/copilot-instructions.md)** - Code standards, Git workflow, testing
-  - Naming conventions (camelCase, snake_case, UPPER_CASE)
-  - Architecture principles by gaesca04
-  - Git commit format and branching strategy
-  - Testing checklist
-
-### Application Guides
-- **[Recirculator README](./apps/recirculator/README.md)** - Recirculator installation, usage, configuration
-
-### Project Management
-- **[Issues](./docs/project/ISSUES.md)** - Project tasks and planning
-- **[Refactoring Plan](./docs/project/REFACTORING-PLAN.md)** - Monorepo migration plan
-
-## 🏆 Reconocimiento
-
-Toda la arquitectura del monorepo está basada en las recomendaciones profesionales de **gaesca04** (ingeniero informático), quien aplicó sus conocimientos avanzados de arquitectura de software, específicamente patrones de monorepo y arquitectura en capas, para diseñar una solución escalable, mantenible y profesional.
-
-gaesca04 es un técnico excelente cuyas indicaciones seguimos al pie de la letra.
+See [docs/architecture.md](./docs/architecture.md#5-modules-by-layer) for module classification.
 
 ---
 
-**Última Actualización**: 28 Noviembre 2025  
-**Arquitectura por**: gaesca04 (computer engineer)  
-**Estado**: ✅ Estructura creada, migración en progreso
+## 🏆 Credits
+
+Architecture designed by **gaesca04** (Computer Engineer) applying professional monorepo and layered architecture patterns.
+
+---
+
+**Last Updated**: 28 November 2025  
+**Status**: Recirculator in production, monorepo structure operational
